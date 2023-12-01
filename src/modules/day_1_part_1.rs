@@ -1,10 +1,9 @@
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
-use std::string;
 
 static INPUT_FILE_PATH: &str = "src/inputs/day_1.txt";
 
-pub fn part1() -> u32 {
+pub fn run() -> u32 {
     read_input()
     .unwrap()
     .iter()
