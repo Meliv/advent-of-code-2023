@@ -1,3 +1,6 @@
+#![allow(unused_imports)]
+#[allow(dead_code)]
+
 mod modules {
     pub mod day_1_part_1;
     pub mod day_1_part_2;
