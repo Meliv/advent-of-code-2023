@@ -7,21 +7,15 @@ pub fn run() -> u32 {
     read_input()
     .unwrap()
     .iter()
-    .map(|f| process_line(f))
+    .map(|f| process_line(f.as_str()))
     .sum()
 }
 
-fn process_line(line: &String) -> u32 {
-    let digits: Vec<char> = line.chars().filter(|&c| c.is_digit(10)).collect();
+fn process_line(line: &str) -> u32 {
+    let digits: Vec<char> = line.chars().filter(|&c| c.is_ascii_digit()).collect();
 
-    let first = match digits.first() {
-        Some(first) => first,
-        None => &'0',
-    };
-    let last = match digits.last() {
-        Some(first) => first,
-        None => &'0',
-    };
+    let first = digits.first().unwrap_or(&'0');
+    let last = digits.last().unwrap_or(&'0');
 
     match format!("{}{}", first, last).parse() {
         Ok(parsed) => parsed,

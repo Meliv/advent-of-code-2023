@@ -10,14 +10,14 @@ static REGEX_STRING: &str = r"(\d+)(\w+);*";
 pub fn run() {
     let input = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
 
-    let result: u32 = input.lines().map(|line| get_power(line)).sum();
+    let result: u32 = input.lines().map(get_power).sum();
     println!("Total power is {result}");
 }
 
 fn get_power(line: &str) -> u32 {
-    let value_split: Vec<&str> = line.split(":").collect();
-    let formatted_values = value_split.get(1).unwrap().replace(" ", "");
-    let value_groups: Vec<&str> = formatted_values.split(";").collect();
+    let value_split: Vec<&str> = line.split(':').collect();
+    let formatted_values = value_split.get(1).unwrap().replace(' ', "");
+    let value_groups: Vec<&str> = formatted_values.split(';').collect();
 
     let exp = Regex::new(REGEX_STRING).unwrap();
 

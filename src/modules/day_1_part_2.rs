@@ -5,10 +5,10 @@ use std::io::{self, BufRead, BufReader};
 static INPUT_FILE_PATH: &str = "src/inputs/day_1.txt";
 
 pub fn run() -> u32 {
-    read_input().unwrap().iter().map(|f| process_line(f)).sum()
+    read_input().unwrap().iter().map(|f| process_line(f.as_str())).sum()
 }
 
-fn process_line(line: &String) -> u32 {
+fn process_line(line: &str) -> u32 {
     let exp = Regex::new(r"\d|one|two|three|four|five|six|seven|eight|nine|ten").unwrap();
     let mut start = 0;
     let mut matches: Vec<&str> = vec![];

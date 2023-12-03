@@ -12,7 +12,7 @@ pub fn run() {
 
     let mut result: i16 = 0;
 
-    for (index, line) in input.lines().into_iter().enumerate() {
+    for (index, line) in input.lines().enumerate() {
         if is_line_possible(line) {
             result = result + (index as i16) + 1;
         }
@@ -22,9 +22,9 @@ pub fn run() {
 }
 
 fn is_line_possible(line: &str) -> bool {
-    let value_split: Vec<&str> = line.split(":").collect();
-    let formatted_values = value_split.get(1).unwrap().replace(" ", "");
-    let value_groups: Vec<&str> = formatted_values.split(";").collect();
+    let value_split: Vec<&str> = line.split(':').collect();
+    let formatted_values = value_split.get(1).unwrap().replace(' ', "");
+    let value_groups: Vec<&str> = formatted_values.split(';').collect();
 
     let exp = Regex::new(REGEX_STRING).unwrap();
 
