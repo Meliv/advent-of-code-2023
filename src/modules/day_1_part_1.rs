@@ -34,3 +34,13 @@ fn read_input() -> Result<Vec<String>, io::Error> {
 
     Ok(lines)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn day1_part1_test() {
+        assert_eq!(run(), 55816);
+    }
+}

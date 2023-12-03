@@ -5,7 +5,7 @@ static INPUT_FILE_PATH: &str = "src/inputs/day_3.txt";
 static REGEX_GET_DIGITS: &str = r"\d+";
 static REGEX_GET_SYMBOLS: &str = r"[^\d.\n]";
 
-pub fn run() {
+pub fn run() -> u32 {
     let input = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
     let digit_exp = Regex::new(REGEX_GET_DIGITS).unwrap();
     let mut result: u32 = 0;
@@ -37,6 +37,8 @@ pub fn run() {
         }
     }
     println!("Total: {result}");
+
+    result
 }
 
 fn has_adjacent_symbols(start: usize, end: usize, line: &str) -> bool {
@@ -49,4 +51,14 @@ fn has_adjacent_symbols(start: usize, end: usize, line: &str) -> bool {
     let symbol_exp = Regex::new(REGEX_GET_SYMBOLS).unwrap();
 
     symbol_exp.find(&line[match_start..match_end]).is_some()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn day3_part1_test() {
+        assert_eq!(run(), 553825);
+    }
 }

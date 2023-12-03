@@ -5,7 +5,7 @@ static INPUT_FILE_PATH: &str = "src/inputs/day_3.txt";
 static REGEX_GET_NUMBERS: &str = r"\b\d+";
 static REGEX_GET_STARS: &str = r"\*+";
 
-pub fn run() {
+pub fn run() -> u32 {
     let input = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
     let star_exp = Regex::new(REGEX_GET_STARS).unwrap();
     let mut result: u32 = 0;
@@ -37,6 +37,8 @@ pub fn run() {
         }
     }
     println!("Total: {result}");
+
+    result
 }
 
 fn get_adjacent_numbers(start: usize, end: usize, line: &str) -> Vec<u32> {
@@ -50,4 +52,15 @@ fn get_adjacent_numbers(start: usize, end: usize, line: &str) -> Vec<u32> {
     .filter(|c| c.get(0).unwrap().start() <= end && c.get(0).unwrap().end() > start)
     .map(|c|c.get(0).unwrap().as_str().parse().unwrap())
     .collect()
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn day3_part2_test() {
+        assert_eq!(run(), 93994191);
+    }
 }

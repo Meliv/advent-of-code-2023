@@ -7,18 +7,19 @@ static MAX_BLUE: u8 = 14;
 
 static REGEX_STRING: &str = r"(\d+)(\w+);*";
 
-pub fn run() {
+pub fn run() -> u32 {
     let input = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
 
-    let mut result: i16 = 0;
+    let mut result: u32 = 0;
 
     for (index, line) in input.lines().enumerate() {
         if is_line_possible(line) {
-            result = result + (index as i16) + 1;
+            result = result + 1 + index as u32;
         }
     }
 
     println!("Result is {result}");
+    result
 }
 
 fn is_line_possible(line: &str) -> bool {
@@ -55,4 +56,14 @@ fn is_line_possible(line: &str) -> bool {
     }
 
     true
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn day2_part1_test() {
+        assert_eq!(run(), 2563);
+    }
 }

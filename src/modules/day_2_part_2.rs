@@ -7,11 +7,13 @@ static MAX_BLUE: u8 = 14;
 
 static REGEX_STRING: &str = r"(\d+)(\w+);*";
 
-pub fn run() {
+pub fn run() -> u32 {
     let input = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
 
     let result: u32 = input.lines().map(get_power).sum();
     println!("Total power is {result}");
+
+    result
 }
 
 fn get_power(line: &str) -> u32 {
@@ -52,4 +54,15 @@ fn get_power(line: &str) -> u32 {
     }
 
     highest_blue * highest_red * highest_green
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn day2_part2_test() {
+        assert_eq!(run(), 70768);
+    }
 }
