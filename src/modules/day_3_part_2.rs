@@ -54,7 +54,6 @@ fn get_adjacent_numbers(start: usize, end: usize, line: &str) -> Vec<u32> {
     .collect()
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
