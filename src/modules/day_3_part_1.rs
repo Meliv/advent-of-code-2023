@@ -10,7 +10,7 @@ pub fn run() {
     let digit_exp = Regex::new(REGEX_GET_DIGITS).unwrap();
     let mut result: u32 = 0;
 
-    for (i, current_line) in input.lines().peekable().enumerate() {
+    for (i, current_line) in input.lines().enumerate() {
         let prev_line = if i != 0 {
             input.lines().nth(i - 1).unwrap()
         } else {
