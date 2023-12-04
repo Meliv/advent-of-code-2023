@@ -9,9 +9,9 @@ pub fn run() -> u32 {
     for current_line in input.lines() {
         let mut line_points: u32 = 0;
         let line_without_game = current_line.split(':').nth(1).unwrap();
-        let splits: Vec<&str> = line_without_game.split("|").collect();
-        let win_nos: Vec<&str> = splits.get(0).unwrap().trim().split(' ').filter(|c| !c.is_empty()).collect();
-        let your_nos: Vec<&str> = splits.get(1).unwrap().trim().split(' ').filter(|c| !c.is_empty()).collect();
+        let splits: Vec<&str> = line_without_game.split('|').collect();
+        let win_nos: Vec<&str> = splits.first().unwrap().trim().split(' ').filter(|c| !c.is_empty()).collect();
+        let your_nos: Vec<&str> = splits.last().unwrap().trim().split(' ').filter(|c| !c.is_empty()).collect();
 
         for win_no in win_nos {
             if your_nos.contains(&win_no) {
