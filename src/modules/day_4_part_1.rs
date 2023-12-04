@@ -12,7 +12,7 @@ pub fn run() -> u32 {
     let exp = Regex::new(REGEX_GET_NUMBERS).unwrap();
     let mut result: u32 = 0;
 
-    for (i, current_line) in input.lines().enumerate() {
+    for current_line in input.lines() {
         let mut line_points: u32 = 0;
         let line_without_game = current_line.split(':').nth(1).unwrap();
         let splits: Vec<&str> = line_without_game.split("|").collect();
@@ -20,11 +20,7 @@ pub fn run() -> u32 {
         let your_nos: Vec<&str> = splits.get(1).unwrap().split(' ').collect();
 
         for c in exp.captures_iter(win_nos) {
-
-
             if your_nos.contains(&c.get(0).unwrap().as_str()) {
-
-                
                 if line_points == 0 {
                     line_points += 1
                 } else {
