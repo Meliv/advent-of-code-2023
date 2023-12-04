@@ -13,16 +13,13 @@ pub fn run() -> u32 {
 }
 
 fn process_line(line: &str) -> u32 {
-    let exp = Regex::new(r"\d|one|two|three|four|five|six|seven|eight|nine|ten").unwrap();
-    let mut start = 0;
-    let mut matches: Vec<&str> = vec![];
+    let exp = Regex::new(r"\d|one|two|three|four|five|six|seven|eight|nine").unwrap();
 
-    while let Some(captures) = exp.captures(&line[start..]) {
-        matches.push(captures.get(0).unwrap().as_str());
-        start += 1;
-    }
+    let first: &str = exp.find(line).unwrap().as_str();
+    let reverse_string: String = line.chars().rev().collect();
+    let last: &str = exp.find(&reverse_string).unwrap().as_str();
 
-    format!("{}{}", match_to_number(matches.first().unwrap()), match_to_number(matches.last().unwrap()))
+    format!("{}{}", match_to_number(first), match_to_number(last))
     .parse()
     .unwrap()
 }
