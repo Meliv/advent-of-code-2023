@@ -1,6 +1,4 @@
 use regex::Regex;
-use std::fs::File;
-use std::io::{self, BufRead, BufReader};
 
 static INPUT_FILE_PATH: &str = "src/inputs/day_1.txt";
 
