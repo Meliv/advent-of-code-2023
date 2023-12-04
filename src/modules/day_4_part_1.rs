@@ -17,7 +17,7 @@ pub fn run() -> u32 {
         let line_without_game = current_line.split(':').nth(1).unwrap();
         let splits: Vec<&str> = line_without_game.split("|").collect();
         let win_nos = splits.get(0).unwrap();
-        let your_nos: Vec<&str> = splits.get(1).unwrap().split(' ').collect();
+        let your_nos: Vec<&str> = splits.get(1).unwrap().trim().split(' ').collect();
 
         for c in exp.captures_iter(win_nos) {
             if your_nos.contains(&c.get(0).unwrap().as_str()) {
