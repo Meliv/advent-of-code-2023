@@ -73,8 +73,7 @@ fn load_maps(input: String) -> Vec<Map> {
                 map_values.push(MapValue {
                     destination_start: *values.first().unwrap(),
                     source_start: *values.get(1).unwrap(),
-                    source_end: *values.get(1).unwrap() + *values.get(2).unwrap() - 1,
-                    range: *values.get(2).unwrap(),
+                    source_end: *values.get(1).unwrap() + *values.get(2).unwrap() - 1
                 });
             }
         }
@@ -94,8 +93,7 @@ struct Map {
 struct MapValue {
     source_start: usize,
     source_end: usize,
-    destination_start: usize,
-    range: usize,
+    destination_start: usize
 }
 
 #[cfg(test)]
