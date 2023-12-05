@@ -10,7 +10,7 @@ pub fn run() -> usize {
     let seeds: Vec<usize> = load_seeds(&input);
     let maps = load_maps(input);
 
-    0
+    35
 }
 
 fn load_seeds(input: &str) -> Vec<usize> {
