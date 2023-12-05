@@ -10,7 +10,31 @@ pub fn run() -> usize {
     let seeds: Vec<usize> = load_seeds(&input);
     let maps = load_maps(input);
 
-    35
+    let result: usize = seeds.iter().map(|s| get_location(&maps, *s)).min().unwrap();
+
+    println!("Result: {}", result);
+
+    result
+}
+
+fn get_location(maps: &Vec<Map>, seed: usize) -> usize {
+    let mut value = seed;
+
+    for map in maps {
+        let x: &Vec<usize> = &map
+            .values
+            .iter()
+            .filter(|v| value >= v.source_start && value <= v.source_end)
+            .map(|v| value - v.source_start + v.destination_start)
+            .collect();
+
+        value = match x.first() {
+            Some(v) => *v,
+            None => value
+        };
+    }
+
+    value
 }
 
 fn load_seeds(input: &str) -> Vec<usize> {
@@ -36,63 +60,27 @@ fn load_maps(input: String) -> Vec<Map> {
     let bc: Vec<&str> = blocks[1..].to_vec();
 
     for b in bc {
-        //println!("block start");
-
         let x: Vec<_> = b.split('\n').collect();
-
         let mut map_values: Vec<MapValue> = vec![];
 
         for y in x {
-            // Declare map value here
-
             let values: Vec<usize> = num_exp
                 .captures_iter(y)
                 .map(|f| f.get(0).unwrap().as_str().parse().unwrap())
                 .collect();
 
             if !values.is_empty() {
-                // Hack
                 map_values.push(MapValue {
                     destination_start: *values.first().unwrap(),
                     source_start: *values.get(1).unwrap(),
+                    source_end: *values.get(1).unwrap() + *values.get(2).unwrap() - 1,
                     range: *values.get(2).unwrap(),
                 });
             }
-
-            //println!("line break");
         }
 
         maps.push(Map { values: map_values });
-
-        //println!("block end");
     }
-
-    for (i, map) in maps.iter().enumerate() {
-        
-        println!("Map {}", i+1);
-
-        let x = &map.values;
-
-        for mapvalue in x {
-
-            println!("{:?}", mapvalue);
-
-        }
-    }
-
-
-    /*
-    for b in blocks[1..blocks.len()-1] {
-        println!("{}", b);
-
-    }
-    */
-
-    /*
-    for line in input.lines() {
-        maps.push(Map::new(&line));
-    }
-    */
 
     maps
 }
@@ -105,6 +93,7 @@ struct Map {
 #[derive(Debug)]
 struct MapValue {
     source_start: usize,
+    source_end: usize,
     destination_start: usize,
     range: usize,
 }
@@ -115,6 +104,6 @@ mod tests {
 
     #[test]
     fn day5_part1_test() {
-        assert_eq!(run(), 35);
+        assert_eq!(run(), 88151870);
     }
 }
