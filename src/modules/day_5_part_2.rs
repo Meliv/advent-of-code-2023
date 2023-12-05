@@ -1,4 +1,4 @@
-use core::num;
+use core::{num, panic};
 
 use regex::Regex;
 
@@ -10,40 +10,48 @@ pub fn run() -> usize {
     let seeds: Vec<usize> = load_seeds(&input);
     let maps = load_maps(input);
 
-    let result: usize = seeds.iter().map(|s| get_location(&maps, *s)).min().unwrap();
+    let result = get_location(&maps, seeds);
+    let min_result = result.iter().min().unwrap();
 
-    println!("Result: {}", result);
+    println!("Result: {}", min_result);
 
-    result
+    *min_result
 }
 
-fn get_location(maps: &Vec<Map>, seed: usize) -> usize {
-    let mut value = seed;
+fn get_location(maps: &Vec<Map>, seeds: Vec<usize>) -> Vec<usize> {
 
-    for map in maps {
-        let x: &Vec<usize> = &map
-            .values
-            .iter()
-            .filter(|v| value >= v.source_start && value <= v.source_end)
-            .map(|v| value - v.source_start + v.destination_start)
-            .collect();
+    let mut successful_seeds: Vec<usize> = vec![];
 
-        value = match x.first() {
-            Some(v) => *v,
-            None => value
-        };
+    for mut value in seeds {
+        
+        for map in maps {
+            let x: &Vec<usize> = &map
+                .values
+                .iter()
+                .filter(|v| value >= v.source_start && value <= v.source_end)
+                .map(|v| value - v.source_start + v.destination_start)
+                .collect();
+
+            value = *x.first().unwrap_or(&value);
+        }
+
+        successful_seeds.push(value);
     }
 
-    value
+    successful_seeds
 }
 
 fn load_seeds(input: &str) -> Vec<usize> {
     let mut seeds: Vec<usize> = vec![];
-    let exp = Regex::new(r"\d+").unwrap();
+    let exp = Regex::new(r"(\d+)\s+(\d+)").unwrap();
     let line = input.lines().next().unwrap();
 
     for c in exp.captures_iter(line) {
-        seeds.push(c.get(0).unwrap().as_str().parse().unwrap());
+        let s: usize = c.get(1).unwrap().as_str().parse().unwrap();
+        let e: usize = c.get(2).unwrap().as_str().parse().unwrap();
+
+        let a: Vec<usize> = (s..s + e).collect();
+        seeds.extend(a);
     }
 
     seeds
@@ -72,13 +80,23 @@ fn load_maps(input: String) -> Vec<Map> {
             if !values.is_empty() {
                 map_values.push(MapValue {
                     destination_start: *values.first().unwrap(),
+                    destination_end: *values.first().unwrap() + *values.get(2).unwrap() - 1,
                     source_start: *values.get(1).unwrap(),
-                    source_end: *values.get(1).unwrap() + *values.get(2).unwrap() - 1
+                    source_end: *values.get(1).unwrap() + *values.get(2).unwrap() - 1,
                 });
             }
         }
 
-        maps.push(Map { values: map_values });
+        let x = map_values
+            .iter()
+            .min_by(|x, y| x.destination_start.cmp(&y.destination_start))
+            .unwrap();
+
+        maps.push(Map {
+            min_value: x.source_start,
+            max_value: x.source_end,
+            values: map_values,
+        });
     }
 
     maps
@@ -87,13 +105,16 @@ fn load_maps(input: String) -> Vec<Map> {
 #[derive(Debug)]
 struct Map {
     values: Vec<MapValue>,
+    min_value: usize,
+    max_value: usize,
 }
 
 #[derive(Debug)]
 struct MapValue {
     source_start: usize,
     source_end: usize,
-    destination_start: usize
+    destination_start: usize,
+    destination_end: usize,
 }
 
 #[cfg(test)]
