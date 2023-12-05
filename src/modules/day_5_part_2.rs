@@ -1,4 +1,5 @@
-use core::{num, panic};
+use core::num;
+use std::ops::Sub;
 
 use regex::Regex;
 
@@ -7,51 +8,78 @@ static INPUT_FILE_PATH: &str = "src/inputs/day_5.txt";
 pub fn run() -> usize {
     let input = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
 
-    let seeds: Vec<usize> = load_seeds(&input);
-    let maps = load_maps(input);
+    let seeds: Vec<Seed> = load_seeds(&input);
+    let reversed_maps: Vec<Map> = load_maps(input);
 
-    let result = get_location(&maps, seeds);
-    let min_result = result.iter().min().unwrap();
+    println!("{:?}", reversed_maps);
 
-    println!("Result: {}", min_result);
+    if seeds.len() != 0 {
+        //panic!();
 
-    *min_result
-}
-
-fn get_location(maps: &Vec<Map>, seeds: Vec<usize>) -> Vec<usize> {
-
-    let mut successful_seeds: Vec<usize> = vec![];
-
-    for mut value in seeds {
-        
-        for map in maps {
-            let x: &Vec<usize> = &map
-                .values
-                .iter()
-                .filter(|v| value >= v.source_start && value <= v.source_end)
-                .map(|v| value - v.source_start + v.destination_start)
-                .collect();
-
-            value = *x.first().unwrap_or(&value);
-        }
-
-        successful_seeds.push(value);
     }
 
-    successful_seeds
+    // Figure out min output for first map
+    let mut last_map = reversed_maps.first().unwrap();
+    let mut min_value: usize = last_map
+    .values
+    .iter()
+    .min_by(|x,y| x.destination_start.cmp(&y.destination_start)).unwrap()
+    .destination_start;
+
+    min_value = min_value.min(0);
+
+    // From there, iterate until you get a seed that's in your seed ranges
+    loop {
+        let result = get_seed(&reversed_maps, min_value);
+        if result.is_some() && is_in_seeds(&seeds, min_value) { break }
+        min_value += 1;
+    }
+
+    // First one you get, return it
+    println!("Result: {}", min_value);
+    min_value
 }
 
-fn load_seeds(input: &str) -> Vec<usize> {
-    let mut seeds: Vec<usize> = vec![];
+fn is_in_seeds(seeds: &Vec<Seed>, value: usize) -> bool {
+    seeds.iter().any(|s| s.min <= value && s.max >= value)
+}
+
+fn get_seed(maps: &Vec<Map>, location: usize) -> Option<usize> {
+    let mut value = location;
+
+    println!("Huh? {:?}", location);
+    for map in maps {
+        let x: &Vec<usize> = &map
+            .values
+            .iter()
+            //.filter(|v| value >= v.destination_start && value <= v.destination_end)
+            .map(|v| value - v.destination_start + v.source_start)
+            .collect();
+
+            if x.first().is_some() {
+                println!("{}", x.first().unwrap());
+            }
+
+
+        value = match x.first() {
+            Some(v) => *v,
+            None => return None
+        };
+    }
+
+    Some(value)
+}
+
+fn load_seeds(input: &str) -> Vec<Seed> {
+    let mut seeds: Vec<Seed> = vec![];
     let exp = Regex::new(r"(\d+)\s+(\d+)").unwrap();
     let line = input.lines().next().unwrap();
 
     for c in exp.captures_iter(line) {
-        let s: usize = c.get(1).unwrap().as_str().parse().unwrap();
-        let e: usize = c.get(2).unwrap().as_str().parse().unwrap();
-
-        let a: Vec<usize> = (s..s + e).collect();
-        seeds.extend(a);
+        let min: usize = c.get(1).unwrap().as_str().parse().unwrap();
+        let range: usize = c.get(2).unwrap().as_str().parse().unwrap();
+        let max = range + min;
+        seeds.push(Seed { min, max });
     }
 
     seeds
@@ -83,30 +111,27 @@ fn load_maps(input: String) -> Vec<Map> {
                     destination_end: *values.first().unwrap() + *values.get(2).unwrap() - 1,
                     source_start: *values.get(1).unwrap(),
                     source_end: *values.get(1).unwrap() + *values.get(2).unwrap() - 1,
+                    offset: values.first().unwrap().abs_diff(*values.get(1).unwrap())
                 });
             }
         }
 
-        let x = map_values
-            .iter()
-            .min_by(|x, y| x.destination_start.cmp(&y.destination_start))
-            .unwrap();
-
-        maps.push(Map {
-            min_value: x.source_start,
-            max_value: x.source_end,
-            values: map_values,
-        });
+        maps.push(Map { values: map_values });
     }
 
+    maps.reverse();
     maps
+}
+
+#[derive(Debug)]
+struct Seed {
+    max: usize,
+    min: usize
 }
 
 #[derive(Debug)]
 struct Map {
     values: Vec<MapValue>,
-    min_value: usize,
-    max_value: usize,
 }
 
 #[derive(Debug)]
@@ -115,6 +140,7 @@ struct MapValue {
     source_end: usize,
     destination_start: usize,
     destination_end: usize,
+    offset: usize
 }
 
 #[cfg(test)]
