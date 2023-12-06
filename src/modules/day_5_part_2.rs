@@ -21,11 +21,31 @@ fn calculate(maps: &Vec<Map>, seeds: Vec<ValueRange>) -> usize {
     let mut value_ranges = seeds;
 
     for map in maps {
+        let mut new_ranges: Vec<ValueRange> = vec![];
+
         for map_range in &map.ranges {
             for value_range in &value_ranges {
-                let _ = calculate_overlap(map_range, value_range);
+                let overlap = calculate_overlap(map_range, value_range);
+
+                // Doesn't work if the value range overlaps multiple map ranges
+                // Need to be more clever
+                if let Some(o) = overlap.out_overlap {
+                    new_ranges.push(ValueRange {min: o.min, range: o.range});
+                }
+
+                if let Some(o) = overlap.in_overlap {
+                    // Calculate the new range, adjusted for the new destination
+
+                    //let new_min: usize = 
+
+                    //new_ranges.push(ValueRange {min: o.min, range: o.range});
+                    
+                    //new_ranges.push(ValueRange {min: o.min, range: o.range});
+                }
             }
         }
+
+        value_ranges = new_ranges;
     }
 
     value_ranges
@@ -37,12 +57,8 @@ fn calculate(maps: &Vec<Map>, seeds: Vec<ValueRange>) -> usize {
 
 fn calculate_overlap(map_range: &MapRange, value_range: &ValueRange) -> Overlap {
     Overlap {
-        in_overlap: Some(ValueRange {
-            max: 0,
-            min: 0,
-            range: 0,
-        }),
-        out_overlap: None
+        in_overlap: Some(ValueRange { min: 0, range: 0 }),
+        out_overlap: None,
     }
 }
 
@@ -54,8 +70,7 @@ fn load_seeds(input: &str) -> Vec<ValueRange> {
     for c in exp.captures_iter(line) {
         let min: usize = c.get(1).unwrap().as_str().parse().unwrap();
         let range: usize = c.get(2).unwrap().as_str().parse().unwrap();
-        let max = range + min - 1;
-        seeds.push(ValueRange { min, max, range });
+        seeds.push(ValueRange { min,range });
     }
 
     seeds
@@ -103,7 +118,6 @@ struct Overlap {
 
 #[derive(Debug)]
 struct ValueRange {
-    max: usize,
     min: usize,
     range: usize,
 }
