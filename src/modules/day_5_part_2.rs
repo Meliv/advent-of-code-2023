@@ -31,6 +31,9 @@ fn calculate(maps: &Vec<Map>, seeds: Vec<ValueRange>) -> usize {
                 // Val Range: |     [_________]      [________________]
                 // Map Range: |  [____]               [_]  [___] [_______]
                 // Need to be more clever
+                // calculate_overlap() needs to return an overlap containing a
+                // Vec<ValueRange> for ranges that don't overlap anything
+                // and another for ones that do
                 if let Some(o) = overlap.out_overlap {
                     new_ranges.push(ValueRange {min: o.min, range: o.range});
                 }
