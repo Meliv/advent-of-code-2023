@@ -104,26 +104,31 @@ fn calculate_overlap(map_range: &MapRange, value_range: &ValueRange) -> Overlap 
             in_overlap: Some(ValueRange {
                 min: (value_range.min - map_range.source_start) + map_range.destination_start,
                 max: map_range.destination_start + map_range.range - 1,
-                range: map_range.source_end - value_range.min + 1
+                range: map_range.source_end - value_range.min + 1,
             }),
             out_overlap: Some(ValueRange {
                 min: map_range.source_end + 1,
-                max: map_range.source_end + (value_range.range - (map_range.source_end - value_range.min + 1)),
-                range: value_range.range - (map_range.source_end - value_range.min + 1)
-            })
+                max: map_range.source_end
+                    + (value_range.range - (map_range.source_end - value_range.min + 1)),
+                range: value_range.range - (map_range.source_end - value_range.min + 1),
+            }),
         }
-    }
-    else {
+    } else {
         // Partial Overlap Left
-        // Value Range: [________]
-        // Map Range  :      [_______] 
+        // Value Range: [____|___]
+        // Map Range  :      [_______]
         Overlap {
             in_overlap: Some(ValueRange {
-                min: value_range.min,
-                max: value_range.max,
-                range: value_range.range,
+                min: map_range.destination_start,
+                max: (value_range.max - map_range.source_start) + map_range.destination_start,
+                range: value_range.max - map_range.source_start + 1,
             }),
-            out_overlap: None,
+            out_overlap: Some(ValueRange {
+                min: map_range.source_end + 1,
+                max: map_range.source_end
+                    + (value_range.range - (map_range.source_end - value_range.min + 1)),
+                range: value_range.range - (map_range.source_end - value_range.min + 1),
+            }),
         }
     }
 }
