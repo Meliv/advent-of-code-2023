@@ -106,7 +106,11 @@ fn calculate_overlap(map_range: &MapRange, value_range: &ValueRange) -> Overlap 
                 max: map_range.destination_start + map_range.range - 1,
                 range: map_range.source_end - value_range.min + 1
             }),
-            out_overlap: None,
+            out_overlap: Some(ValueRange {
+                min: map_range.source_end + 1,
+                max: map_range.source_end + (value_range.range - (map_range.source_end - value_range.min + 1)),
+                range: value_range.range - (map_range.source_end - value_range.min + 1)
+            })
         }
     }
     else {
