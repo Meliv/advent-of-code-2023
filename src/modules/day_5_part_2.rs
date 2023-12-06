@@ -21,7 +21,7 @@ fn calculate(maps: &Vec<Map>, seeds: Vec<ValueRange>) -> usize {
     let mut next_map_uncalculated_value_ranges: Vec<ValueRange> = seeds;
 
     let mut i: usize = 1;
-    for (map_i, map) in maps.iter().enumerate() {
+    for map in maps {
         let mut this_map_calculated_ranges: Vec<ValueRange> = vec![];
 
         for mut value_range in next_map_uncalculated_value_ranges {
