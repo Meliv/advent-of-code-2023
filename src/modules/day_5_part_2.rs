@@ -21,7 +21,7 @@ fn calculate(maps: &Vec<Map>, seeds: Vec<ValueRange>) -> usize {
     let mut next_map_uncalculated_value_ranges: Vec<ValueRange> = seeds;
 
     let mut i: usize = 1;
-    for map in maps {
+    for (map_i, map) in maps.iter().enumerate() {
         let mut this_map_calculated_ranges: Vec<ValueRange> = vec![];
 
         for mut value_range in next_map_uncalculated_value_ranges {
@@ -62,6 +62,13 @@ fn calculate(maps: &Vec<Map>, seeds: Vec<ValueRange>) -> usize {
         next_map_uncalculated_value_ranges = this_map_calculated_ranges;
     }
 
+    let x: usize = next_map_uncalculated_value_ranges
+    .iter()
+    .map(|f| f.range)
+    .sum();
+
+    println!("Summed Ranges: {}", x);
+
     next_map_uncalculated_value_ranges
         .iter()
         .min_by(|x, y| x.min.cmp(&y.min))
@@ -70,6 +77,7 @@ fn calculate(maps: &Vec<Map>, seeds: Vec<ValueRange>) -> usize {
 }
 
 fn get_overlap_type(map_range: &MapRange, value_range: &ValueRange) -> OverlapType {
+
     if value_range.min >= map_range.source_start && value_range.max <= map_range.source_end {
         return OverlapType::FullInner;
     } else if value_range.min < map_range.source_start && value_range.max > map_range.source_end {
@@ -206,6 +214,7 @@ fn load_maps(input: String) -> Vec<Map> {
     maps
 }
 
+#[derive(Debug)]
 enum OverlapType {
     FullInner,
     FullOuter,
