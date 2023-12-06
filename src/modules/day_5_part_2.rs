@@ -19,58 +19,76 @@ pub fn run() -> usize {
 
 fn calculate(maps: &Vec<Map>, seeds: Vec<ValueRange>) -> usize {
     let mut next_map_uncalculated_value_ranges: Vec<ValueRange> = seeds;
-
+    
+    let mut i: usize = 1;
     for map in maps {
         let mut this_map_calculated_ranges: Vec<ValueRange> = vec![];
 
-        // A counter for the loop
-        // We can't use .iter().enumerate() here as it'll transform
-        // value_range: ValueRange
-        // into
-        // value_range: &ValueRange
-        // which prevents us from updating the min/range properties as we go along
-        let mut i: usize = 1;
-        let next_map_uncalculated_value_ranges_size: usize =
-            next_map_uncalculated_value_ranges.len();
-
         for mut value_range in next_map_uncalculated_value_ranges {
             for map_range in &map.ranges {
+
+                println!("Map Range");
+                println!("{:?}", map_range);
+
+                println!("Value Range");
+                println!("{:?}", value_range);
+
+
                 let overlap = calculate_overlap(map_range, &value_range);
 
-                //println!("{:?}", overlap);
+                println!("Overlap");
+                println!("{:?}", overlap);
 
-                // Doesn't work if the value range overlaps multiple map ranges
-                // Val Range: |     [_________]      [________________]
-                // Map Range: |  [____]               [_]  [___] [_______]
-                // Need to be more clever
-                // calculate_overlap() needs to return an overlap containing a
-                // Vec<ValueRange> for ranges that don't overlap anything
-                // and another for ones that do
-
-                // in_overlap are values that have been calculated and don't need to be processed again for this map
                 if let Some(in_overlap) = overlap.in_overlap {
+
+                    if in_overlap.range == 0 {
+                        panic!("In Overlap Panic: {:?}", in_overlap);
+                    }
+
+                    //println!("Before x");
+                    //println!("{:?}", this_map_calculated_ranges);
+
                     this_map_calculated_ranges.push(in_overlap);
+                    
+                    //println!("After x");
+                    //println!("{:?}", this_map_calculated_ranges);
+
+                    
                 }
 
                 if let Some(out_overlap) = overlap.out_overlap {
+                    
+                    if out_overlap.range == 0 {
+                        let overlap = calculate_overlap(map_range, &value_range);
+
+                        println!("{:?}", map_range);
+                        panic!("Out Overlap Panic: {:?}", out_overlap);
+                    }
+                    
+                    //println!("Before");
+                    //println!("{:?}", value_range);
                     value_range.min = out_overlap.min;
                     value_range.range = out_overlap.range;
-
-                    if i == next_map_uncalculated_value_ranges_size {
+                    //println!("After");
+                    //println!("{:?}", value_range);
+                    if i == map.ranges.len() {
                         // Last iteration so whatever we're left over
                         // with in value_range needs to be saved
                         this_map_calculated_ranges.push(out_overlap);
+                        println!("Push on last");
+                        println!("{:?}", this_map_calculated_ranges);
                     }
                 }
-
-                i += 1;
+                i+=1;
             }
+            i = 1;
         }
+        println!("End Map");
+        println!("{:?}", this_map_calculated_ranges);
 
         next_map_uncalculated_value_ranges = this_map_calculated_ranges;
-    }
 
-    println!("{:?}", next_map_uncalculated_value_ranges);
+    }
 
     next_map_uncalculated_value_ranges
         .iter()
@@ -80,17 +98,7 @@ fn calculate(maps: &Vec<Map>, seeds: Vec<ValueRange>) -> usize {
 }
 
 fn calculate_overlap(map_range: &MapRange, value_range: &ValueRange) -> Overlap {
-    if value_range.min > map_range.source_end || value_range.max < map_range.source_start {
-        // No Overlap
-        Overlap {
-            in_overlap: None,
-            out_overlap: Some(ValueRange {
-                min: value_range.min,
-                max: value_range.max,
-                range: value_range.range,
-            })
-        }
-    } else if value_range.min >= map_range.source_start && value_range.max <= map_range.source_end {
+    if value_range.min >= map_range.source_start && value_range.max <= map_range.source_end {
         // Entire Overlap
         return Overlap {
             in_overlap: Some(ValueRange {
@@ -129,7 +137,7 @@ fn calculate_overlap(map_range: &MapRange, value_range: &ValueRange) -> Overlap 
             }),
             out_overlap: Some(ValueRange {
                 min: value_range.min,
-                max: value_range.min + (map_range.source_start - value_range.min) - 1,
+                max: map_range.source_start - 1,
                 range: map_range.source_start - value_range.min,
             }),
         }
