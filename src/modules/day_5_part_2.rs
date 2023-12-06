@@ -21,7 +21,7 @@ fn calculate(maps: &Vec<Map>, seeds: Vec<ValueRange>) -> usize {
     let mut value_ranges = seeds;
 
     for map in maps {
-        let mut new_ranges: Vec<ValueRange> = vec![];
+        let mut new_ranges: Vec<ValueRange> = vec![]; // This needs moving up
 
         for map_range in &map.ranges {
             for value_range in &value_ranges {
@@ -34,19 +34,9 @@ fn calculate(maps: &Vec<Map>, seeds: Vec<ValueRange>) -> usize {
                 // calculate_overlap() needs to return an overlap containing a
                 // Vec<ValueRange> for ranges that don't overlap anything
                 // and another for ones that do
-                if let Some(o) = overlap.out_overlap {
-                    new_ranges.push(ValueRange {min: o.min, range: o.range});
-                }
 
-                if let Some(o) = overlap.in_overlap {
-                    // Calculate the new range, adjusted for the new destination
-
-                    //let new_min: usize = 
-
-                    //new_ranges.push(ValueRange {min: o.min, range: o.range});
-                    
-                    //new_ranges.push(ValueRange {min: o.min, range: o.range});
-                }
+                // in_overlap are values that have been calculated and don't need to be provessed again for this map
+                new_ranges.extend(overlap.in_overlap);
             }
         }
 
@@ -62,8 +52,8 @@ fn calculate(maps: &Vec<Map>, seeds: Vec<ValueRange>) -> usize {
 
 fn calculate_overlap(map_range: &MapRange, value_range: &ValueRange) -> Overlap {
     Overlap {
-        in_overlap: Some(ValueRange { min: 0, range: 0 }),
-        out_overlap: None,
+        in_overlap: vec![],
+        out_overlap: vec![],
     }
 }
 
@@ -117,8 +107,8 @@ fn load_maps(input: String) -> Vec<Map> {
 
 #[derive(Debug)]
 struct Overlap {
-    in_overlap: Option<ValueRange>,
-    out_overlap: Option<ValueRange>,
+    in_overlap: Vec<ValueRange>,
+    out_overlap: Vec<ValueRange>,
 }
 
 #[derive(Debug)]
