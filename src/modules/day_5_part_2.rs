@@ -98,16 +98,26 @@ fn calculate(maps: &Vec<Map>, seeds: Vec<ValueRange>) -> usize {
 }
 
 fn calculate_overlap(map_range: &MapRange, value_range: &ValueRange) -> Overlap {
-    if value_range.min >= map_range.source_start && value_range.max <= map_range.source_end {
-        // Entire Overlap
+    if value_range.min > map_range.source_end || value_range.max < map_range.source_start {
+        // No Overlap
         Overlap {
+            in_overlap: None,
+            out_overlap: Some(ValueRange {
+                min: value_range.min,
+                max: value_range.max,
+                range: value_range.range,
+            })
+        }
+    } else if value_range.min >= map_range.source_start && value_range.max <= map_range.source_end {
+        // Entire Overlap
+        return Overlap {
             in_overlap: Some(ValueRange {
                 min: (value_range.min - map_range.source_start) + map_range.destination_start,
                 max: (value_range.max - map_range.source_start) + map_range.destination_start,
                 range: value_range.range,
             }),
             out_overlap: None,
-        }
+        };
     } else if value_range.min >= map_range.source_start && value_range.max > map_range.source_end {
         // Partial Overlap Right
         // Value Range:     [___|____]
