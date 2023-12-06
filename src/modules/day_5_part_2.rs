@@ -37,6 +37,8 @@ fn calculate(maps: &Vec<Map>, seeds: Vec<ValueRange>) -> usize {
             for map_range in &map.ranges {
                 let overlap = calculate_overlap(map_range, &value_range);
 
+                //println!("{:?}", overlap);
+
                 // Doesn't work if the value range overlaps multiple map ranges
                 // Val Range: |     [_________]      [________________]
                 // Map Range: |  [____]               [_]  [___] [_______]
@@ -68,6 +70,8 @@ fn calculate(maps: &Vec<Map>, seeds: Vec<ValueRange>) -> usize {
         next_map_uncalculated_value_ranges = this_map_calculated_ranges;
     }
 
+    println!("{:?}", next_map_uncalculated_value_ranges);
+
     next_map_uncalculated_value_ranges
         .iter()
         .min_by(|x, y| x.min.cmp(&y.min))
@@ -78,14 +82,14 @@ fn calculate(maps: &Vec<Map>, seeds: Vec<ValueRange>) -> usize {
 fn calculate_overlap(map_range: &MapRange, value_range: &ValueRange) -> Overlap {
     if value_range.min > map_range.source_end || value_range.max < map_range.source_start {
         // No Overlap
-        return Overlap {
+        Overlap {
             in_overlap: None,
             out_overlap: Some(ValueRange {
                 min: value_range.min,
                 max: value_range.max,
                 range: value_range.range,
-            }),
-        };
+            })
+        }
     } else if value_range.min >= map_range.source_start && value_range.max <= map_range.source_end {
         // Entire Overlap
         return Overlap {
