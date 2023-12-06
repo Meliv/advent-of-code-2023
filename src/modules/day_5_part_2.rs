@@ -26,59 +26,38 @@ fn calculate(maps: &Vec<Map>, seeds: Vec<ValueRange>) -> usize {
 
         for mut value_range in next_map_uncalculated_value_ranges {
             for map_range in &map.ranges {
-                println!("Map Range");
-                println!("{:?}", map_range);
-
-                println!("Value Range");
-                println!("{:?}", value_range);
-
                 let overlap = calculate_overlap(map_range, &value_range);
 
-                println!("Overlap");
-                println!("{:?}", overlap);
-
                 if let Some(in_overlap) = overlap.in_overlap {
-                    if in_overlap.range == 0 {
-                        panic!("In Overlap Panic: {:?}", in_overlap);
-                    }
-
-                    //println!("Before x");
-                    //println!("{:?}", this_map_calculated_ranges);
-
                     this_map_calculated_ranges.push(in_overlap);
-
-                    //println!("After x");
-                    //println!("{:?}", this_map_calculated_ranges);
                 }
 
-                if let Some(out_overlap) = overlap.out_overlap {
-                    if out_overlap.range == 0 {
-                        let overlap = calculate_overlap(map_range, &value_range);
-
-                        println!("{:?}", map_range);
-                        panic!("Out Overlap Panic: {:?}", out_overlap);
+                if let Some(out_overlaps) = overlap.out_overlaps {
+                    if out_overlaps.len() == 2 {
+                        let x = ValueRange {
+                            min: out_overlaps.get(1).unwrap().min,
+                            max: out_overlaps.get(1).unwrap().max,
+                            range: out_overlaps.get(1).unwrap().range,
+                        };
+                        this_map_calculated_ranges.push(x);
                     }
 
-                    //println!("Before");
-                    //println!("{:?}", value_range);
-                    value_range.min = out_overlap.min;
-                    value_range.range = out_overlap.range;
-                    //println!("After");
-                    //println!("{:?}", value_range);
+                    value_range = ValueRange {
+                        min: out_overlaps.first().unwrap().min,
+                        max: out_overlaps.first().unwrap().max,
+                        range: out_overlaps.first().unwrap().range,
+                    };
+
                     if i == map.ranges.len() {
                         // Last iteration so whatever we're left over
                         // with in value_range needs to be saved
-                        this_map_calculated_ranges.push(out_overlap);
-                        println!("Push on last");
-                        println!("{:?}", this_map_calculated_ranges);
+                        this_map_calculated_ranges.push(value_range);
                     }
                 }
                 i += 1;
             }
             i = 1;
         }
-        println!("End Map");
-        println!("{:?}", this_map_calculated_ranges);
 
         next_map_uncalculated_value_ranges = this_map_calculated_ranges;
     }
@@ -118,18 +97,35 @@ fn calculate_overlap(map_range: &MapRange, value_range: &ValueRange) -> Overlap 
                 max: (value_range.max - map_range.source_start) + map_range.destination_start,
                 range: value_range.range,
             }),
-            out_overlap: None,
+            out_overlaps: None,
         },
-        OverlapType::FullOuter => {
-            panic!("First full outer");
-        }
+        OverlapType::FullOuter => Overlap {
+            in_overlap: Some(ValueRange {
+                min: map_range.destination_start,
+                max: map_range.destination_end,
+                range: map_range.range,
+            }),
+            out_overlaps: Some(vec![
+                ValueRange {
+                    min: value_range.min,
+                    max: map_range.source_start - 1,
+                    range: map_range.source_start - value_range.min,
+                },
+                ValueRange {
+                    min: map_range.source_end + 1,
+                    max: map_range.source_end
+                        + (value_range.range - (map_range.source_end - value_range.min + 1)),
+                    range: value_range.range - (map_range.source_end - value_range.min + 1),
+                },
+            ]),
+        },
         OverlapType::None => Overlap {
             in_overlap: None,
-            out_overlap: Some(ValueRange {
+            out_overlaps: Some(vec![ValueRange {
                 min: value_range.min,
                 max: value_range.max,
                 range: value_range.range,
-            }),
+            }]),
         },
         OverlapType::PartialLeft => Overlap {
             in_overlap: Some(ValueRange {
@@ -137,11 +133,11 @@ fn calculate_overlap(map_range: &MapRange, value_range: &ValueRange) -> Overlap 
                 max: (value_range.max - map_range.source_start) + map_range.destination_start,
                 range: value_range.max - map_range.source_start + 1,
             }),
-            out_overlap: Some(ValueRange {
+            out_overlaps: Some(vec![ValueRange {
                 min: value_range.min,
                 max: map_range.source_start - 1,
                 range: map_range.source_start - value_range.min,
-            }),
+            }]),
         },
         OverlapType::PartialRight => Overlap {
             in_overlap: Some(ValueRange {
@@ -149,12 +145,12 @@ fn calculate_overlap(map_range: &MapRange, value_range: &ValueRange) -> Overlap 
                 max: map_range.destination_start + map_range.range - 1,
                 range: map_range.source_end - value_range.min + 1,
             }),
-            out_overlap: Some(ValueRange {
+            out_overlaps: Some(vec![ValueRange {
                 min: map_range.source_end + 1,
                 max: map_range.source_end
                     + (value_range.range - (map_range.source_end - value_range.min + 1)),
                 range: value_range.range - (map_range.source_end - value_range.min + 1),
-            }),
+            }]),
         },
     }
 }
@@ -221,10 +217,10 @@ enum OverlapType {
 #[derive(Debug)]
 struct Overlap {
     in_overlap: Option<ValueRange>,
-    out_overlap: Option<ValueRange>,
+    out_overlaps: Option<Vec<ValueRange>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 struct ValueRange {
     min: usize,
     max: usize,
