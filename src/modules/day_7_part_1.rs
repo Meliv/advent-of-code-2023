@@ -8,209 +8,46 @@ static INPUT_FILE_PATH: &str = "src/inputs/day_7.txt";
 pub fn run() -> usize {
     let input = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
 
+    let hands: Vec<Hand> = input.lines().map(process_hand).collect();
+    let result: usize = hands.iter().map(|h| h.bid * h.highest_hand as usize).sum();
+
+    println!("Result: {}", result);
+
     6440
 }
 
-fn calculate(map_sequence: &Vec<Map>, seeds: Vec<ValueRange>) -> usize {
-    let mut next_map_uncalculated_value_ranges: Vec<ValueRange> = seeds;
+fn process_hand(line: &str) -> Hand {
 
-    for map_step in map_sequence {
-        let mut calculated_value_ranges: Vec<ValueRange> = vec![];
-        for map_range in &map_step.ranges {
-            let mut new_values: Vec<ValueRange> = vec![];
-            for value_range in &next_map_uncalculated_value_ranges {
-                let overlap = calculate_overlap(map_range, value_range);
+    let split: Vec<&str> = line.split(' ').collect();
 
-                if let Some(in_overlap) = overlap.in_overlap {
-                    calculated_value_ranges.push(in_overlap);
-                }
-                if let Some(out_overlaps) = overlap.out_overlaps {
-                    new_values.extend(out_overlaps);
-                }
-            }
-        }
-
-        next_map_uncalculated_value_ranges = calculated_value_ranges;
-    }
-
-    next_map_uncalculated_value_ranges
-        .iter()
-        .min_by(|x, y| x.min.cmp(&y.min))
-        .unwrap()
-        .min
-}
-
-fn get_overlap_type(map_range: &MapRange, value_range: &ValueRange) -> OverlapType {
-    if value_range.min >= map_range.source_start && value_range.max <= map_range.source_end {
-        return OverlapType::FullInner;
-    } else if value_range.min < map_range.source_start && value_range.max > map_range.source_end {
-        return OverlapType::FullOuter;
-    } else if (value_range.min < map_range.source_start && value_range.max < map_range.source_start)
-        || (value_range.min > map_range.source_end && value_range.max > map_range.source_end)
-    {
-        return OverlapType::None;
-    } else if value_range.min >= map_range.source_start && value_range.max > map_range.source_end {
-        return OverlapType::PartialRight;
-    } else if value_range.min < map_range.source_start && value_range.max <= map_range.source_end {
-        return OverlapType::PartialLeft;
-    }
-
-    panic!("Unable to determine overlap type");
-}
-
-fn calculate_overlap(map_range: &MapRange, value_range: &ValueRange) -> Overlap {
-    let overlap_type: OverlapType = get_overlap_type(map_range, value_range);
-
-    match overlap_type {
-        OverlapType::FullInner => Overlap {
-            in_overlap: Some(ValueRange {
-                min: (value_range.min - map_range.source_start) + map_range.destination_start,
-                max: (value_range.max - map_range.source_start) + map_range.destination_start,
-                range: value_range.range,
-            }),
-            out_overlaps: None,
-        },
-        OverlapType::FullOuter => Overlap {
-            in_overlap: Some(ValueRange {
-                min: map_range.destination_start,
-                max: map_range.destination_end,
-                range: map_range.range,
-            }),
-            out_overlaps: Some(vec![
-                ValueRange {
-                    min: value_range.min,
-                    max: map_range.source_start - 1,
-                    range: map_range.source_start - value_range.min,
-                },
-                ValueRange {
-                    min: map_range.source_end + 1,
-                    max: map_range.source_end
-                        + (value_range.range - (map_range.source_end - value_range.min + 1)),
-                    range: value_range.range - (map_range.source_end - value_range.min + 1),
-                },
-            ]),
-        },
-        OverlapType::None => Overlap {
-            in_overlap: None,
-            out_overlaps: Some(vec![ValueRange {
-                min: value_range.min,
-                max: value_range.max,
-                range: value_range.range,
-            }]),
-        },
-        OverlapType::PartialLeft => Overlap {
-            in_overlap: Some(ValueRange {
-                min: map_range.destination_start,
-                max: (value_range.max - map_range.source_start) + map_range.destination_start,
-                range: value_range.max - map_range.source_start + 1,
-            }),
-            out_overlaps: Some(vec![ValueRange {
-                min: value_range.min,
-                max: map_range.source_start - 1,
-                range: map_range.source_start - value_range.min,
-            }]),
-        },
-        OverlapType::PartialRight => Overlap {
-            in_overlap: Some(ValueRange {
-                min: (value_range.min - map_range.source_start) + map_range.destination_start,
-                max: map_range.destination_start + map_range.range - 1,
-                range: map_range.source_end - value_range.min + 1,
-            }),
-            out_overlaps: Some(vec![ValueRange {
-                min: map_range.source_end + 1,
-                max: map_range.source_end
-                    + (value_range.range - (map_range.source_end - value_range.min + 1)),
-                range: value_range.range - (map_range.source_end - value_range.min + 1),
-            }]),
-        },
+    Hand {
+        cards: String::from(*split.first().unwrap()),
+        highest_hand: get_highest_hand(split.first().unwrap()),
+        bid: split.get(1).unwrap().parse().unwrap()
     }
 }
 
-fn load_seeds(input: &str) -> Vec<ValueRange> {
-    let mut seeds: Vec<ValueRange> = vec![];
-    let exp = Regex::new(r"(\d+)\s+(\d+)").unwrap();
-    let line = input.lines().next().unwrap();
+fn get_highest_hand(cards: &str) -> HandType {
 
-    for c in exp.captures_iter(line) {
-        let min: usize = c.get(1).unwrap().as_str().parse().unwrap();
-        let range: usize = c.get(2).unwrap().as_str().parse().unwrap();
-        let max: usize = min + range - 1;
-        seeds.push(ValueRange { min, range, max });
-    }
-
-    seeds
-}
-
-fn load_maps(input: String) -> Vec<Map> {
-    let mut maps: Vec<Map> = vec![];
-
-    let split_exp = Regex::new(r"\n\w+-\w+-\w+\smap:").unwrap();
-    let num_exp = Regex::new(r"\d+").unwrap();
-
-    let blocks: Vec<_> = split_exp.split(&input).collect();
-
-    let bc: Vec<&str> = blocks[1..].to_vec();
-
-    for b in bc {
-        let x: Vec<_> = b.split('\n').collect();
-        let mut map_values: Vec<MapRange> = vec![];
-
-        for y in x {
-            let values: Vec<usize> = num_exp
-                .captures_iter(y)
-                .map(|f| f.get(0).unwrap().as_str().parse().unwrap())
-                .collect();
-
-            if !values.is_empty() {
-                map_values.push(MapRange {
-                    destination_start: *values.first().unwrap(),
-                    destination_end: *values.first().unwrap() + *values.get(2).unwrap() - 1,
-                    source_start: *values.get(1).unwrap(),
-                    source_end: *values.get(1).unwrap() + *values.get(2).unwrap() - 1,
-                    range: *values.get(2).unwrap(),
-                });
-            }
-        }
-
-        maps.push(Map { ranges: map_values });
-    }
-    maps
+    HandType::HighCard
 }
 
 #[derive(Debug)]
-enum OverlapType {
-    FullInner,
-    FullOuter,
-    PartialLeft,
-    PartialRight,
-    None,
-}
-
-#[derive(Debug)]
-struct Overlap {
-    in_overlap: Option<ValueRange>,
-    out_overlaps: Option<Vec<ValueRange>>,
+struct Hand {
+    cards: String,
+    highest_hand: HandType,
+    bid: usize
 }
 
 #[derive(Debug, Copy, Clone)]
-struct ValueRange {
-    min: usize,
-    max: usize,
-    range: usize,
-}
-
-#[derive(Debug)]
-struct Map {
-    ranges: Vec<MapRange>,
-}
-
-#[derive(Debug)]
-struct MapRange {
-    source_start: usize,
-    source_end: usize,
-    destination_start: usize,
-    destination_end: usize,
-    range: usize,
+enum HandType {
+    HighCard = 1,
+    OnePair = 2,
+    TwoPair = 3,
+    ThreeKind = 4,
+    FullHouse = 5,
+    FourKind = 6,
+    FiveKind = 7
 }
 
 #[cfg(test)]
