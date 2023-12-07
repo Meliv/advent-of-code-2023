@@ -1,5 +1,5 @@
 use core::num;
-use std::ops::Sub;
+use itertools::Itertools;
 
 use regex::Regex;
 
@@ -10,16 +10,28 @@ pub fn run() -> usize {
 
     let hands: Vec<Hand> = input.lines().map(process_hand).collect();
 
-    for hand in hands {
-        println!("Cards: {}, Result: {:?}", hand.cards, hand.highest_hand);
+    let hands_grouped_by_type = hands
+    .into_iter()
+    .sorted_by_key(|x| x.highest_hand)
+    .group_by(|h| h.highest_hand);
+
+    let mut sorted_hands: Vec<Hand> = vec![];
+
+    for group in &hands_grouped_by_type {
+        let mut group_vec: Vec<Hand> = group.1.collect();
+        group_vec.sort_by(|a, b| a.cards.cmp(&b.cards));
+        sorted_hands.extend(group_vec);
     }
 
+    let result: usize = sorted_hands
+        .iter()
+        .enumerate()
+        .map(|(i, h)| h.bid * (i + 1))
+        .sum();
 
-    //let result: usize = hands.iter().map(|h| h.bid * h.highest_hand as usize).sum();
+    println!("Result {}", result);
 
-    //println!("Result: {}", result);
-
-    6440
+    result
 }
 
 fn process_hand(line: &str) -> Hand {
@@ -29,15 +41,24 @@ fn process_hand(line: &str) -> Hand {
 
     Hand {
         highest_hand: get_highest_hand(&cards),
-        cards,
+        cards: translate_cards(&cards),
         bid: split.get(1).unwrap().parse().unwrap(),
     }
+}
+
+fn translate_cards(cards: &str) -> String {
+    cards
+        .replace('A', "Z")
+        .replace('K', "Y")
+        .replace('Q', "X")
+        .replace('J', "W")
+        .replace('T', "V")
 }
 
 fn get_highest_hand(cards: &str) -> HandType {
     for c in cards.chars() {
         let filtered_hand = cards.replace(c, "").to_string();
-        
+
         let matching_cards: Vec<char> = cards.chars().filter(|x| x == &c).collect();
 
         match matching_cards.len() {
@@ -66,7 +87,7 @@ struct Hand {
     bid: usize,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 enum HandType {
     HighCard = 1,
     OnePair = 2,
@@ -83,6 +104,6 @@ mod tests {
 
     #[test]
     fn day7_part1_test() {
-        assert_eq!(run(), 6440);
+        assert_eq!(run(), 247815719);
     }
 }
