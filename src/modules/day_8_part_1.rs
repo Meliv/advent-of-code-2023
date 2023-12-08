@@ -22,32 +22,30 @@ pub fn run() -> usize {
 
     let map = get_map(&input);
 
-    let mut current_position: String = String::from(&input.lines().nth(2).unwrap()[0..2]);
+    let mut current_position: &String = &String::from(&input.lines().nth(2).unwrap()[0..=2]);
     for i in instructions {
+        println!("Current Pos {}", current_position);
         println!("Instruction {}", i);
-        let m = map.get(&current_position).unwrap();
+        let m = map.get(current_position).unwrap();
         println!("Destination {:?}", m);
 
-        current_position = 
-        let x = m.destinations.get(i).unwrap();
+        current_position = m.destinations.get(i).unwrap();
     }
-
-    println!("Instructions {:?}", input.lines().next());
 
     println!("Result {}", 0);
 
     0
 }
 
-fn get_map(input: &str) -> HashMap<String, Node> {
-    let mut map = HashMap::new();
+fn get_map(input: &str) -> HashMap<&String, Node> {
+    let mut map: HashMap<&String, Node> = HashMap::new();
 
     for line in input.lines().enumerate().filter(|(i, _)| i > &1) {
         let key = String::from(&line.1[0..2]);
-        let left = String::from(&line.1[7..9]);
-        let right = String::from(&line.1[12..14]);
+        let left = String::from(&line.1[7..=9]);
+        let right = String::from(&line.1[12..=14]);
         map.insert(
-            key,
+            &key,
             Node {
                 destinations: vec![left, right],
             },
