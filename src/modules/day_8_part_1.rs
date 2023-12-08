@@ -22,15 +22,16 @@ pub fn run() -> usize {
 
     let map = get_map(&input);
 
-    let mut current_position: &str = &input.lines().nth(2).unwrap()[0..=2];
+    let mut result: usize = 0;
+    let mut current_position: &str = "AAA";
+
     while current_position != "ZZZ" {
-        for i in &instructions {
-            //println!("Current Pos {}", current_position);
-            //println!("Instruction {}", i);
+
+        for i in instructions.iter() {
             let m = map.get(current_position).unwrap();
-            //println!("Destination {:?}", m);
-            
             current_position = m.destinations.get(*i).unwrap();
+            
+            result += 1;
 
             if current_position == "ZZZ" {
                 break;
@@ -38,9 +39,9 @@ pub fn run() -> usize {
         }
     }
 
-    println!("Result {}", 0);
+    println!("Result {}", result);
 
-    0
+    result
 }
 
 fn get_map(input: &str) -> HashMap<&str, Node> {
@@ -72,6 +73,6 @@ mod tests {
 
     #[test]
     fn day7_part1_test() {
-        assert_eq!(run(), 247815719);
+        assert_eq!(run(), 16531);
     }
 }
