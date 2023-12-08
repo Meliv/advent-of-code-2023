@@ -22,14 +22,20 @@ pub fn run() -> usize {
 
     let map = get_map(&input);
 
-    let mut current_position: &String = &String::from(&input.lines().nth(2).unwrap()[0..=2]);
-    for i in instructions {
-        println!("Current Pos {}", current_position);
-        println!("Instruction {}", i);
-        let m = map.get(current_position).unwrap();
-        println!("Destination {:?}", m);
+    let mut current_position: &str = &input.lines().nth(2).unwrap()[0..=2];
+    while current_position != "ZZZ" {
+        for i in &instructions {
+            //println!("Current Pos {}", current_position);
+            //println!("Instruction {}", i);
+            let m = map.get(current_position).unwrap();
+            //println!("Destination {:?}", m);
+            
+            current_position = m.destinations.get(*i).unwrap();
 
-        current_position = m.destinations.get(i).unwrap();
+            if current_position == "ZZZ" {
+                break;
+            }
+        }
     }
 
     println!("Result {}", 0);
@@ -37,15 +43,15 @@ pub fn run() -> usize {
     0
 }
 
-fn get_map(input: &str) -> HashMap<&String, Node> {
-    let mut map: HashMap<&String, Node> = HashMap::new();
+fn get_map(input: &str) -> HashMap<&str, Node> {
+    let mut map: HashMap<&str, Node> = HashMap::new();
 
     for line in input.lines().enumerate().filter(|(i, _)| i > &1) {
-        let key = String::from(&line.1[0..2]);
+        let key = &line.1[0..=2];
         let left = String::from(&line.1[7..=9]);
         let right = String::from(&line.1[12..=14]);
         map.insert(
-            &key,
+            key,
             Node {
                 destinations: vec![left, right],
             },
