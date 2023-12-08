@@ -23,18 +23,42 @@ pub fn run() -> usize {
     let map = get_map(&input);
 
     let mut result: usize = 0;
-    let mut current_position: &str = "AAA";
 
-    while current_position != "ZZZ" {
+    let mut current_positions: Vec<&Node> = map
+        .iter()
+        .filter(|(k, _)| k.ends_with('A'))
+        .map(|(_, n)| n)
+        .collect_vec();
 
+    let mut loop_is_complete: bool = false;
+
+    while !loop_is_complete {
         for i in instructions.iter() {
-            let m = map.get(current_position).unwrap();
-            current_position = m.destinations.get(*i).unwrap();
-            
-            result += 1;
+            let mut next_positions: Vec<&Node> = vec![];
+            let mut destination_endings: String = String::new();
 
-            if current_position == "ZZZ" {
+            for current_position in &current_positions {
+                let next_position = map
+                    .get(current_position.destinations.get(*i).unwrap().as_str())
+                    .unwrap();
+
+                next_positions.push(next_position);
+                destination_endings.push('Z');
+            }
+
+            // Are we done?
+            result += 1;
+            
+            if result as f64 % 1000000. == 1. {
+                println!("{}", result);
+            }
+
+            loop_is_complete = next_positions.iter().all(|n| n.key.ends_with('Z'));
+
+            if loop_is_complete {
                 break;
+            } else {
+                current_positions = next_positions;
             }
         }
     }
@@ -51,9 +75,11 @@ fn get_map(input: &str) -> HashMap<&str, Node> {
         let key = &line.1[0..=2];
         let left = String::from(&line.1[7..=9]);
         let right = String::from(&line.1[12..=14]);
+
         map.insert(
             key,
             Node {
+                key: String::from(key),
                 destinations: vec![left, right],
             },
         );
@@ -64,6 +90,7 @@ fn get_map(input: &str) -> HashMap<&str, Node> {
 
 #[derive(Debug)]
 struct Node {
+    key: String,
     destinations: Vec<String>,
 }
 
