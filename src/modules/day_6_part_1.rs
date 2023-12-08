@@ -1,5 +1,3 @@
-use core::num;
-
 use regex::Regex;
 
 static INPUT_FILE_PATH: &str = "src/inputs/day_6.txt";
@@ -66,6 +64,6 @@ mod tests {
 
     #[test]
     fn day6_part1_test() {
-        assert_eq!(run(), 0);
+        assert_eq!(run(), 114400);
     }
 }
