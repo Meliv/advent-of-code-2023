@@ -1,8 +1,5 @@
-use core::num;
 use itertools::Itertools;
-use std::{collections::HashMap, thread::current};
-
-use regex::Regex;
+use std::collections::HashMap;
 
 static INPUT_FILE_PATH: &str = "src/inputs/day_8.txt";
 
@@ -22,46 +19,41 @@ pub fn run() -> usize {
 
     let map = get_map(&input);
 
-    let mut result: usize = 0;
-
-    let mut current_positions: Vec<&Node> = map
+    let start_positions: Vec<&Node> = map
         .iter()
         .filter(|(k, _)| k.ends_with('A'))
         .map(|(_, n)| n)
         .collect_vec();
 
-    let mut loop_is_complete: bool = false;
+    let mut iteration_results: Vec<usize> = vec![];
 
-    while !loop_is_complete {
-        for i in instructions.iter() {
-            let mut next_positions: Vec<&Node> = vec![];
-            let mut destination_endings: String = String::new();
+    for start_position in start_positions {
+        let mut iteration_found: bool = false;
+        let mut current_position = start_position;
+        let mut iteration: usize = 0;
 
-            for current_position in &current_positions {
+        while !iteration_found {
+            for i in instructions.iter() {
                 let next_position = map
                     .get(current_position.destinations.get(*i).unwrap().as_str())
                     .unwrap();
 
-                next_positions.push(next_position);
-                destination_endings.push('Z');
-            }
+                iteration += 1;
 
-            // Are we done?
-            result += 1;
-            
-            if result as f64 % 1000000. == 1. {
-                println!("{}", result);
-            }
+                iteration_found = next_position.key.ends_with('Z');
 
-            loop_is_complete = next_positions.iter().all(|n| n.key.ends_with('Z'));
-
-            if loop_is_complete {
-                break;
-            } else {
-                current_positions = next_positions;
+                if iteration_found {
+                    break;
+                } else {
+                    current_position = next_position;
+                }
             }
         }
+
+        iteration_results.push(iteration);
     }
+
+    let result: usize = iteration_results.iter().fold(1, |acc, &x| num::integer::lcm(acc, x));
 
     println!("Result {}", result);
 
@@ -100,6 +92,6 @@ mod tests {
 
     #[test]
     fn day8_part2_test() {
-        assert_eq!(run(), 16531);
+        assert_eq!(run(), 24035773251517);
     }
 }
