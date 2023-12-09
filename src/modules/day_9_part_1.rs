@@ -27,7 +27,7 @@ fn get_next_sequence_no(sequence: &Vec<isize>) -> isize {
         count += 1;
     }
     
-    if steps.is_empty() {
+    if steps.iter().all(|i| i == &0) {
         return 0;
     }
     
