@@ -8,7 +8,10 @@ pub fn run() -> isize {
         .map(|line| line.split(' ').map(|c| c.parse().unwrap()).collect())
         .collect();
 
-    let result: isize = sequences.iter().map(|s| s.last().unwrap() + get_next_sequence_no(s)).sum();
+    let result: isize = sequences
+        .iter()
+        .map(|s| s.last().unwrap() + get_next_sequence_no(s))
+        .sum();
 
     println!("Result {}", result);
 
@@ -22,15 +25,15 @@ fn get_next_sequence_no(sequence: &Vec<isize>) -> isize {
     while count < sequence.len() - 1 {
         let a = *sequence.get(count).unwrap();
         let b = *sequence.get(count + 1).unwrap();
-        steps.push(b-a);
+        steps.push(b - a);
 
         count += 1;
     }
-    
+
     if steps.iter().all(|i| i == &0) {
         return 0;
     }
-    
+
     steps.last().unwrap() + get_next_sequence_no(&steps)
 }
 
