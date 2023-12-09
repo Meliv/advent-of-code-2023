@@ -1,39 +1,27 @@
+use num::{
+    clamp,
+    traits::{clamp_max, clamp_min},
+};
 use regex::Regex;
 
 static INPUT_FILE_PATH: &str = "src/inputs/day_3.txt";
 
 static REGEX_GET_DIGITS: &str = r"\d+";
-static REGEX_GET_SYMBOLS: &str = r"[^\d.\n]";
 
-pub fn run() -> u32 {
-    let input = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
+pub fn run() -> isize {
+    let mut input = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
+    let line_length: isize = input.lines().next().unwrap().len() as isize;
+    input = input.replace(['\r', '\n'], "");
     let digit_exp = Regex::new(REGEX_GET_DIGITS).unwrap();
-    let mut result: u32 = 0;
+    let mut result: isize = 0;
 
-    for (i, current_line) in input.lines().enumerate() {
-        let prev_line = if i != 0 {
-            input.lines().nth(i - 1).unwrap()
-        } else {
-            ""
-        };
-        let next_line = if i != input.lines().count() - 1 {
-            input.lines().nth(i + 1).unwrap()
-        } else {
-            ""
-        };
+    for capture in digit_exp.captures_iter(input.as_str()) {
+        let match_start: isize = capture.get(0).unwrap().start() as isize;
+        let match_end: isize = capture.get(0).unwrap().end() as isize;
 
-        for captures in digit_exp.captures_iter(current_line) {
-            let match_start = captures.get(0).unwrap().start();
-            let match_end = captures.get(0).unwrap().end();
-
-            let adjacent_prev = has_adjacent_symbols(match_start, match_end, prev_line);
-            let adjacent_next = has_adjacent_symbols(match_start, match_end, next_line);
-            let adjacent_current = has_adjacent_symbols(match_start, match_end, current_line);
-
-            if adjacent_next || adjacent_prev || adjacent_current {
-                let r: u32 = captures.get(0).unwrap().as_str().parse().unwrap();
-                result += r;
-            }
+        if has_adjacent_symbols(match_start, match_end, line_length, &input) {
+            let number: isize = capture.get(0).unwrap().as_str().parse().unwrap();
+            result += number;
         }
     }
     println!("Total: {result}");
@@ -41,16 +29,51 @@ pub fn run() -> u32 {
     result
 }
 
-fn has_adjacent_symbols(start: usize, end: usize, line: &str) -> bool {
-    if line.is_empty() {
-        return false;
+fn has_adjacent_symbols(start: isize, end: isize, line_length: isize, input: &str) -> bool {
+    let line_no = (start / line_length) + 1;
+    let line_start = (line_no - 1) * line_length;
+    let line_end = line_no * line_length - 1;
+
+    // Above
+    if line_no != 1 {
+        let above_match_start = clamp_min(start - line_length - 1, line_start - line_length);
+        let above_match_end = clamp_max(end - line_length + 1, line_end - line_length);
+
+        let ams_u: usize = above_match_start as usize;
+        let ame_u: usize = above_match_end as usize;
+
+        let chars_above = &input[ams_u..ame_u];
+
+        if chars_above.chars().any(|c| !c.is_numeric() && c != '.') {
+            return true;
+        }
     }
-    let match_start = if start > 0 { start - 1 } else { 0 };
-    let match_end = if end == line.len() { end } else { end + 1 };
 
-    let symbol_exp = Regex::new(REGEX_GET_SYMBOLS).unwrap();
+    let adjacent_match_start = clamp_min(start - 1, line_start) as usize;
+    let adjacent_match_end = clamp_max(end + 1, line_end) as usize;
 
-    symbol_exp.find(&line[match_start..match_end]).is_some()
+    let adms_u: usize = adjacent_match_start as usize;
+    let adme_u: usize = adjacent_match_end as usize;
+
+    let chars_adjacent = &input[adms_u..adme_u];
+    if chars_adjacent.chars().any(|c| !c.is_numeric() && c != '.') {
+        return true;
+    }
+
+    if line_no != (input.len() / line_length as usize) as isize {
+        let adjacent_match_start = clamp_min(start + line_length - 1, line_start + line_length);
+        let adjacent_match_end = clamp_max(end + line_length + 1, line_end + line_length);
+
+        let bms_u: usize = adjacent_match_start as usize;
+        let bme_u: usize = adjacent_match_end as usize;
+
+        let below_adjacent = &input[bms_u..bme_u];
+        if below_adjacent.chars().any(|c| !c.is_numeric() && c != '.') {
+            return true;
+        }
+    }
+
+    false
 }
 
 #[cfg(test)]

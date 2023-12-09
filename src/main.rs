@@ -38,5 +38,5 @@ use modules::day_8_part_1;
 use modules::day_8_part_2;
 
 fn main() {
-    day_8_part_2::run();
+    day_3_part_1::run();
 }
