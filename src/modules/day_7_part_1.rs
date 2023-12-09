@@ -35,7 +35,7 @@ pub fn run() -> usize {
 }
 
 fn process_hand(line: &str) -> Hand {
-    let split: Vec<&str> = line.split(' ').collect();
+    let split: Vec<&str> = line.split_whitespace().collect();
 
     let cards = String::from(*split.first().unwrap());
 

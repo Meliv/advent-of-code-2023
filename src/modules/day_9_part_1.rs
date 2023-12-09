@@ -5,7 +5,7 @@ pub fn run() -> isize {
 
     let sequences: Vec<Vec<isize>> = input
         .lines()
-        .map(|line| line.split(' ').map(|c| c.parse().unwrap()).collect())
+        .map(|line| line.split_whitespace().map(|c| c.parse().unwrap()).collect())
         .collect();
 
     let result: isize = sequences
