@@ -2,14 +2,11 @@ use std::collections::VecDeque;
 
 use itertools::Itertools;
 use num::complex::ComplexFloat;
-use regex::Regex;
 
 const INPUT_FILE_PATH: &str = "src/inputs/day_10.txt";
 const START_REGEX: &str = "S";
 
 fn replace_loop_pipe(input: &mut Vec<Vec<char>>) {
-    let exp = Regex::new(START_REGEX).unwrap();
-
     let mut start = (0,0);
     for (y, col) in input.iter().enumerate() {
         for (x, c) in col.iter().enumerate() {
@@ -27,18 +24,7 @@ fn replace_loop_pipe(input: &mut Vec<Vec<char>>) {
     let mut last_pos: (usize, usize) = start;
     let mut next_pos: (usize, usize);
 
-    // Friendly names for movement directions
-    /*
-    let south: isize = line_length;
-    let north: isize = -line_length;
-    let west: isize = -1;
-    let east: isize = 1;
-    */
-
     while current_tile != 'S' {
-        // Debug
-        //println!("Step {}: At {} with {}. Last pos {}", result, current_pos, current_tile, last_pos);
-
         next_pos = match current_tile {
             '|' => {
                 // North/South
@@ -95,40 +81,37 @@ fn replace_loop_pipe(input: &mut Vec<Vec<char>>) {
 
 pub fn run() -> usize {
     let string_input = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
-    let line_length: usize = string_input.lines().next().unwrap().len();
     let row_count: usize = string_input.lines().count();
-
+    
     let mut map: Vec<Vec<char>> = vec![vec![]];
-
+    
     for line in string_input.lines() {
         map.push(
             line.chars()
-                .filter(|c| c != &'\r' && c != &'\n')
-                .collect_vec(),
+            .filter(|c| c != &'\r' && c != &'\n')
+            .collect_vec(),
         );
     }
+    let col_count: usize = string_input.lines().next().unwrap().len();
 
     
     replace_loop_pipe(&mut map);
+
+    let x = (0,0);
+    flood_fill(&mut map, col_count, row_count, x.0, x.1);
+
     for x in map {
         for c in x {
             print!("{}", c);
         }
         println!();
     }
-    /*
-
-
-    */
-
-    // Part 2
-    //let _ = flood_fill(replaced_input, row_count, line_length as usize, 0, 0); // Todo, find co-ords to start
 
     let result: usize = 0;
     result
 }
 
-fn flood_fill(input: Vec<Vec<char>>, rowCount: usize, colCount: usize, x: usize, y: usize) {
+fn flood_fill(input: &mut Vec<Vec<char>>, rowCount: usize, colCount: usize, x: usize, y: usize) {
     let mut queue: VecDeque<(usize, usize)> = VecDeque::new();
     queue.push_back((x, y));
 }
