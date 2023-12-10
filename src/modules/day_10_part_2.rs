@@ -7,11 +7,11 @@ const INPUT_FILE_PATH: &str = "src/inputs/day_10.txt";
 const START_REGEX: &str = "S";
 
 fn replace_loop_pipe(input: &mut Vec<Vec<char>>) {
-    let mut start = (0,0);
+    let mut start: (isize, isize) = (0, 0);
     for (y, col) in input.iter().enumerate() {
         for (x, c) in col.iter().enumerate() {
             if c == &'S' {
-                start = (x, y);
+                start = (x as isize, y as isize);
             }
         }
     }
@@ -20,9 +20,9 @@ fn replace_loop_pipe(input: &mut Vec<Vec<char>>) {
 
     // Mutable in the loop for pathfinding
     let mut current_tile: char = start_direction.0;
-    let mut current_pos: (usize, usize) = (start_direction.1, start_direction.2);
-    let mut last_pos: (usize, usize) = start;
-    let mut next_pos: (usize, usize);
+    let mut current_pos: (isize, isize) = (start_direction.1, start_direction.2);
+    let mut last_pos: (isize, isize) = start;
+    let mut next_pos: (isize, isize);
 
     while current_tile != 'S' {
         next_pos = match current_tile {
@@ -82,22 +82,21 @@ fn replace_loop_pipe(input: &mut Vec<Vec<char>>) {
 pub fn run() -> usize {
     let string_input = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
     let row_count: usize = string_input.lines().count();
-    
+
     let mut map: Vec<Vec<char>> = vec![vec![]];
-    
+
     for line in string_input.lines() {
         map.push(
             line.chars()
-            .filter(|c| c != &'\r' && c != &'\n')
-            .collect_vec(),
+                .filter(|c| c != &'\r' && c != &'\n')
+                .collect_vec(),
         );
     }
     let col_count: usize = string_input.lines().next().unwrap().len();
 
-    
     replace_loop_pipe(&mut map);
 
-    let x = (0,0);
+    let x = (7, 5); // For testing
     flood_fill(&mut map, col_count, row_count, x.0, x.1);
 
     for x in map {
@@ -111,22 +110,47 @@ pub fn run() -> usize {
     result
 }
 
-fn flood_fill(input: &mut Vec<Vec<char>>, rowCount: usize, colCount: usize, x: usize, y: usize) {
-    let mut queue: VecDeque<(usize, usize)> = VecDeque::new();
+fn flood_fill(input: &mut Vec<Vec<char>>, row_count: usize, col_count: usize, x: isize, y: isize) {
+    let mut queue: VecDeque<(isize, isize)> = VecDeque::new();
     queue.push_back((x, y));
+
+    set_x_y(input, x, y, 'X');
+
+    while queue.len() > 0 {
+        let current = queue.pop_front().unwrap();
+
+        if is_valid(input, row_count, col_count, current.0 + 1, current.1) {}
+    }
 }
 
-fn get_x_y(input: &Vec<Vec<char>>, x: usize, y: usize) -> char {
-    let rows = input.get(y).unwrap();
-    *rows.get(x).unwrap()
+fn is_valid(
+    input: &mut Vec<Vec<char>>,
+    row_count: usize,
+    col_count: usize,
+    x: isize,
+    y: isize,
+) -> bool {
+    if x < 0 || x as usize >= row_count || y < 0 || y as usize >= col_count {
+        return false;
+    }
+
+    true
 }
 
-fn set_x_y(input: &mut Vec<Vec<char>>, x: usize, y: usize, v: char) {
-    let rows = input.get_mut(y).unwrap();
-    *rows.get_mut(x).unwrap() = v;
+fn get_x_y(input: &Vec<Vec<char>>, x: isize, y: isize) -> char {
+    let rows = input.get(y as usize).unwrap();
+    *rows.get(x as usize).unwrap()
 }
 
-fn get_starting_direction(input: &Vec<Vec<char>>, position: (usize, usize)) -> (char, usize, usize) {
+fn set_x_y(input: &mut Vec<Vec<char>>, x: isize, y: isize, v: char) {
+    let rows = input.get_mut(y as usize).unwrap();
+    *rows.get_mut(x as usize).unwrap() = v;
+}
+
+fn get_starting_direction(
+    input: &Vec<Vec<char>>,
+    position: (isize, isize),
+) -> (char, isize, isize) {
     let valid_west_tiles = ['-', 'L', 'F'];
     let west = get_x_y(&input, position.0 - 1, position.1);
     if valid_west_tiles.contains(&west) {
