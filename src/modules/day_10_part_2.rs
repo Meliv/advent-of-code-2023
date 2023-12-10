@@ -120,7 +120,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn day10_part1_test() {
-        assert_eq!(run(), 6907);
+    fn day10_part2_test() {
+        assert_eq!(run(), 4);
     }
 }
