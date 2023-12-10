@@ -112,14 +112,41 @@ pub fn run() -> usize {
 
 fn flood_fill(input: &mut Vec<Vec<char>>, row_count: usize, col_count: usize, x: isize, y: isize) {
     let mut queue: VecDeque<(isize, isize)> = VecDeque::new();
-    queue.push_back((x, y));
+    let mut p: (isize, isize) = (x, y);
+    queue.push_back(p);
 
     set_x_y(input, x, y, 'X');
 
     while queue.len() > 0 {
         let current = queue.pop_front().unwrap();
 
-        if is_valid(input, row_count, col_count, current.0 + 1, current.1) {}
+        // East
+        if is_valid(input, row_count, col_count, current.0 + 1, current.1) {
+            set_x_y(input, current.0 + 1, current.1, 'X');
+            p = (current.0 + 1, current.1);
+            queue.push_back(p);
+        }
+
+        // West
+        if is_valid(input, row_count, col_count, current.0 - 1, current.1) {
+            set_x_y(input, current.0 - 1, current.1, 'X');
+            p = (current.0 - 1, current.1);
+            queue.push_back(p);
+        }
+
+        // North
+        if is_valid(input, row_count, col_count, current.0, current.1 - 1) {
+            set_x_y(input, current.0, current.1 - 1, 'X');
+            p = (current.0, current.1 - 1);
+            queue.push_back(p);
+        }
+
+        // South
+        if is_valid(input, row_count, col_count, current.0, current.1 + 1) {
+            set_x_y(input, current.0, current.1 + 1, 'X');
+            p = (current.0, current.1 + 1);
+            queue.push_back(p);
+        }
     }
 }
 
@@ -130,7 +157,13 @@ fn is_valid(
     x: isize,
     y: isize,
 ) -> bool {
-    if x < 0 || x as usize >= row_count || y < 0 || y as usize >= col_count {
+    if x < 0
+        || x as usize >= row_count
+        || y < 0
+        || y as usize >= col_count
+        || get_x_y(input, x, y) == 'S'
+        || get_x_y(input, x, y) == 'X'
+    {
         return false;
     }
 
