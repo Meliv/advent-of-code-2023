@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use itertools::Itertools;
 use num::complex::ComplexFloat;
 use regex::Regex;
@@ -5,28 +7,33 @@ use regex::Regex;
 const INPUT_FILE_PATH: &str = "src/inputs/day_10.txt";
 const START_REGEX: &str = "S";
 
-pub fn run() -> usize {
-    let mut input = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
-    let line_length: isize = input.lines().next().unwrap().len() as isize;
-    input = input.replace(['\r', '\n'], "");
+fn replace_loop_pipe(input: &mut Vec<Vec<char>>) {
     let exp = Regex::new(START_REGEX).unwrap();
-    let start = exp.find(&input).unwrap();
 
-    let start_direction = get_starting_direction(&input, start.start(), line_length as usize);
+    let mut start = (0,0);
+    for (y, col) in input.iter().enumerate() {
+        for (x, c) in col.iter().enumerate() {
+            if c == &'S' {
+                start = (x, y);
+            }
+        }
+    }
+
+    let start_direction = get_starting_direction(&input, start);
 
     // Mutable in the loop for pathfinding
     let mut current_tile: char = start_direction.0;
-    let mut current_pos: isize = start_direction.1 as isize;
-    let mut last_pos: isize = start.start() as isize;
-    let mut next_pos: isize;
+    let mut current_pos: (usize, usize) = (start_direction.1, start_direction.2);
+    let mut last_pos: (usize, usize) = start;
+    let mut next_pos: (usize, usize);
 
     // Friendly names for movement directions
+    /*
     let south: isize = line_length;
     let north: isize = -line_length;
     let west: isize = -1;
     let east: isize = 1;
-
-    let mut replaced_input: Vec<char> = input.chars().collect();
+    */
 
     while current_tile != 'S' {
         // Debug
@@ -35,142 +42,133 @@ pub fn run() -> usize {
         next_pos = match current_tile {
             '|' => {
                 // North/South
-                match current_pos > last_pos {
-                    true => south,
-                    false => north,
+                match current_pos.1 > last_pos.1 {
+                    true => (current_pos.0, current_pos.1 + 1),
+                    false => (current_pos.0, current_pos.1 - 1),
                 }
             }
             '-' => {
                 // West/East
-                match current_pos > last_pos {
-                    true => east,
-                    false => west,
+                match current_pos.0 > last_pos.0 {
+                    true => (current_pos.0 + 1, current_pos.1),
+                    false => (current_pos.0 - 1, current_pos.1),
                 }
             }
             'L' => {
                 // North/East
-                match current_pos < last_pos {
-                    true => north,
-                    false => east,
+                match current_pos.0 < last_pos.0 {
+                    true => (current_pos.0, current_pos.1 - 1),
+                    false => (current_pos.0 + 1, current_pos.1),
                 }
             }
             'J' => {
                 // North/West
-                match current_pos - 1 > last_pos {
-                    true => west,
-                    false => north,
+                match current_pos.1 > last_pos.1 {
+                    true => (current_pos.0 - 1, current_pos.1),
+                    false => (current_pos.0, current_pos.1 - 1),
                 }
             }
             '7' => {
                 // South/West
-                match current_pos > last_pos {
-                    true => south,
-                    false => west,
+                match current_pos.0 > last_pos.0 {
+                    true => (current_pos.0, current_pos.1 + 1),
+                    false => (current_pos.0 - 1, current_pos.1),
                 }
             }
             'F' => {
                 //South/East
-                match current_pos + 1 < last_pos {
-                    true => east,
-                    false => south,
+                match current_pos.1 < last_pos.1 {
+                    true => (current_pos.0 + 1, current_pos.1),
+                    false => (current_pos.0, current_pos.1 + 1),
                 }
             }
-            _ => panic!("Tile: {}, Pos {}", current_tile, current_pos),
+            _ => panic!("Tile: {}, Pos {:?}", current_tile, current_pos),
         };
 
         last_pos = current_pos;
-        current_pos += next_pos;
-        current_tile = *replaced_input.get(current_pos as usize).unwrap();
+        current_pos = next_pos;
+        current_tile = get_x_y(&input, current_pos.0, current_pos.1);
         // Part 2
-        if let Some(y) = replaced_input.get_mut(last_pos as usize) {
-            *y = 'S'
-        }
+        set_x_y(input, last_pos.0, last_pos.1, 'S');
     }
-    let mut result = 0;
+}
 
-    println!("Line Length {}", line_length);
+pub fn run() -> usize {
+    let string_input = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
+    let line_length: usize = string_input.lines().next().unwrap().len();
+    let row_count: usize = string_input.lines().count();
+
+    let mut map: Vec<Vec<char>> = vec![vec![]];
+
+    for line in string_input.lines() {
+        map.push(
+            line.chars()
+                .filter(|c| c != &'\r' && c != &'\n')
+                .collect_vec(),
+        );
+    }
 
     
-    for line in replaced_input.chunks(line_length as usize) {
-        // Debug
-        for &c in line {
-            print!("{} ", &c);
+    replace_loop_pipe(&mut map);
+    for x in map {
+        for c in x {
+            print!("{}", c);
         }
-
-        let first_s = line.iter().position(|c| c == &'S').unwrap();
-        let last_s = line.len() - line.iter().rev().position(|c| c == &'S').unwrap() -1;
-        
-
-        let mut in_loop = line.starts_with(&['S']);
-        for w in line[first_s..last_s].chunks(2) {
-            if w.len() == 1 {
-                break;
-            }
-
-            match w {
-                ['S', 'S'] => {}
-                [_, 'S'] => {
-                    if in_loop {
-                        result += 1;
-                        in_loop = false
-                    } else {
-                        in_loop = true
-                    }
-                }
-                ['S', _] => {
-                    if in_loop {
-                        in_loop = false
-                    } else {
-                        in_loop = true;
-                        result += 1
-                    }
-                }
-                [_, _] => {
-                    if in_loop {
-                        result += 2
-                    }
-                }
-                _ => {}
-            }
-        }
-
-        println!("Running Count: {}. First S {}, Last S {}", result, first_s, last_s);
+        println!();
     }
+    /*
 
-    println!();
 
-    println!("Expected {}", 8);
-    println!("Result {}", result);
+    */
 
+    // Part 2
+    //let _ = flood_fill(replaced_input, row_count, line_length as usize, 0, 0); // Todo, find co-ords to start
+
+    let result: usize = 0;
     result
 }
 
-fn get_starting_direction(input: &str, position: usize, line_length: usize) -> (char, usize) {
+fn flood_fill(input: Vec<Vec<char>>, rowCount: usize, colCount: usize, x: usize, y: usize) {
+    let mut queue: VecDeque<(usize, usize)> = VecDeque::new();
+    queue.push_back((x, y));
+}
+
+fn get_x_y(input: &Vec<Vec<char>>, x: usize, y: usize) -> char {
+    let rows = input.get(y).unwrap();
+    *rows.get(x).unwrap()
+}
+
+fn set_x_y(input: &mut Vec<Vec<char>>, x: usize, y: usize, v: char) {
+    let rows = input.get_mut(y).unwrap();
+    *rows.get_mut(x).unwrap() = v;
+}
+
+fn get_starting_direction(input: &Vec<Vec<char>>, position: (usize, usize)) -> (char, usize, usize) {
     let valid_west_tiles = ['-', 'L', 'F'];
-    let west = input.chars().nth(position - 1).unwrap();
+    let west = get_x_y(&input, position.0 - 1, position.1);
     if valid_west_tiles.contains(&west) {
-        return (west, position - 1);
+        return (west, position.0 - 1, position.1);
     }
 
     let valid_east_tiles = ['-', 'J', '7'];
-    let east = input.chars().nth(position + 1).unwrap();
+    let east = get_x_y(input, position.0 + 1, position.1);
     if valid_east_tiles.contains(&east) {
-        return (east, position + 1);
+        return (east, position.0 + 1, position.1);
     }
 
     let valid_north_tiles = ['|', 'J', 'F'];
-    let north = input.chars().nth(position - line_length).unwrap();
+    let north = get_x_y(input, position.0, position.1 - 1);
     if valid_north_tiles.contains(&north) {
-        return (north, position - line_length);
+        return (north, position.0, position.1 - 1);
     }
 
     let valid_south_tiles = ['|', 'L', 'J'];
-    let south = input.chars().nth(position + line_length).unwrap();
+    let south = get_x_y(input, position.0, position.1 + 1);
     if valid_south_tiles.contains(&south) {
-        return (south, position + line_length);
+        return (south, position.0, position.1 + 1);
     }
 
-    unreachable!() //in theory
+    unreachable!()
 }
 
 #[cfg(test)]
