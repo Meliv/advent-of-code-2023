@@ -30,55 +30,49 @@ pub fn run() -> usize {
     while current_tile != 'S' {
 
         // Debug
-        println!("Step {}: At {} with {}. Last pos {}", result, current_pos, current_tile, last_pos);
+        //println!("Step {}: At {} with {}. Last pos {}", result, current_pos, current_tile, last_pos);
         
         next_pos = match current_tile {
             '|' => {
                 // North/South
                 match current_pos > last_pos {
                     true => south,
-                    false => north,
-                    _ => panic!(),
+                    false => north
                 }
             }
             '-' => {
                 // West/East
                 match current_pos > last_pos {
                     true => east,
-                    false => west,
-                    _ => panic!(),
+                    false => west
                 }
             }
             'L' => {
                 // North/East
                 match current_pos < last_pos {
                     true => north,
-                    false => east,
-                    _ => panic!(),
+                    false => east
                 }
             }
             'J' => {
                 // North/West
                 match current_pos - 1 > last_pos {
                     true => west,
-                    false => north,
-                    _ => panic!(),
+                    false => north
                 }
             }
             '7' => {
                 // South/West
                 match current_pos > last_pos {
                     true => south,
-                    false => west,
-                    _ => panic!(),
+                    false => west
                 }
             }
             'F' => {
                 //South/East
                 match current_pos + 1 < last_pos {
                     true => east,
-                    false => south,
-                    _ => panic!(),
+                    false => south
                 }
             }
             _ => panic!("Tile: {}, Pos {}", current_tile, current_pos),
@@ -129,6 +123,6 @@ mod tests {
 
     #[test]
     fn day10_part1_test() {
-        assert_eq!(run(), 8);
+        assert_eq!(run(), 6907);
     }
 }
