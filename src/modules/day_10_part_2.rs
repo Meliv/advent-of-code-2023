@@ -88,16 +88,21 @@ pub fn run() -> usize {
     }
     let mut result = 0;
 
-    //println!("Line Length {}", line_length);
+    println!("Line Length {}", line_length);
 
+    
     for line in replaced_input.chunks(line_length as usize) {
         // Debug
         for &c in line {
             print!("{} ", &c);
         }
 
+        let first_s = line.iter().position(|c| c == &'S').unwrap();
+        let last_s = line.len() - line.iter().rev().position(|c| c == &'S').unwrap() -1;
+        
+
         let mut in_loop = line.starts_with(&['S']);
-        for w in line.chunks(2) {
+        for w in line[first_s..last_s].chunks(2) {
             if w.len() == 1 {
                 break;
             }
@@ -129,11 +134,12 @@ pub fn run() -> usize {
             }
         }
 
-        println!("Running Count: {}", result);
+        println!("Running Count: {}. First S {}, Last S {}", result, first_s, last_s);
     }
 
     println!();
 
+    println!("Expected {}", 8);
     println!("Result {}", result);
 
     result
