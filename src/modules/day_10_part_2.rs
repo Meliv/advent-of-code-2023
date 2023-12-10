@@ -95,20 +95,50 @@ pub fn run() -> usize {
     let col_count: usize = string_input.lines().next().unwrap().len();
 
     replace_loop_pipe(&mut map);
-    
-    let test_x_y = (1, 1); // For testing
-    flood_fill(&mut map, col_count, row_count, test_x_y.0, test_x_y.1);
 
-    
-    for x in &map {
-        for c in x {
-            print!("{}", c);
+    let mut yyy: Option<(isize, isize)> = None;
+    for (i_x, row) in map.iter().enumerate() {
+        let mut in_loop: bool = row.first().unwrap() == &'S';
+
+        for (i_y, chunk) in row.chunks(2).enumerate() {
+            match chunk {
+                ['S', 'S'] => {}
+                [_, 'S'] => in_loop = true,
+                ['S', _] => {
+                    if in_loop {
+                        in_loop = false
+                    } else {
+                        yyy = Some((i_x as isize, i_y as isize + 1))
+                    }
+                }
+                [_, _] => {
+                    if in_loop {
+                        yyy = Some((i_x as isize, i_y as isize + 1))
+                    }
+                }
+                _ => unreachable!(),
+            }
         }
-        println!();
+
+        if yyy.is_some() {
+            break;
+        }
     }
 
-    let result: usize = 0;
-    result
+    if yyy.is_none() {
+        panic!("Couldn't find inner boundary");
+    }
+    
+        for x in &map {
+            for c in x {
+                print!("{}", c);
+            }
+            println!();
+        }
+    //let test_x_y = (1, 1); // For testing
+    flood_fill(&mut map, col_count, row_count, yyy.unwrap().0, yyy.unwrap().1);
+
+    0
 }
 
 fn flood_fill(input: &mut Vec<Vec<char>>, row_count: usize, col_count: usize, x: isize, y: isize) {
@@ -177,6 +207,7 @@ fn get_x_y(input: &Vec<Vec<char>>, x: isize, y: isize) -> char {
 }
 
 fn set_x_y(input: &mut Vec<Vec<char>>, x: isize, y: isize, v: char) {
+    println!("set_x_y x:{} y:{}", x, y);
     let rows = input.get_mut(y as usize).unwrap();
     *rows.get_mut(x as usize).unwrap() = v;
 }
