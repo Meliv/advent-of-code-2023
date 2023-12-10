@@ -83,7 +83,7 @@ pub fn run() -> usize {
     let string_input = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
     let row_count: usize = string_input.lines().count();
 
-    let mut map: Vec<Vec<char>> = vec![vec![]];
+    let mut map: Vec<Vec<char>> = vec![];
 
     for line in string_input.lines() {
         map.push(
@@ -95,11 +95,12 @@ pub fn run() -> usize {
     let col_count: usize = string_input.lines().next().unwrap().len();
 
     replace_loop_pipe(&mut map);
+    
+    let test_x_y = (1, 1); // For testing
+    flood_fill(&mut map, col_count, row_count, test_x_y.0, test_x_y.1);
 
-    let x = (7, 5); // For testing
-    flood_fill(&mut map, col_count, row_count, x.0, x.1);
-
-    for x in map {
+    
+    for x in &map {
         for c in x {
             print!("{}", c);
         }
