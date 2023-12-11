@@ -9,13 +9,7 @@ const GALAXY_REGEX: &str = "#";
 pub fn run() -> usize {
     let input = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
 
-    println!("Start Parse");
-    let galaxy = get_galaxy(input);
-    println!("End Parse");
-
-    println!("Start Pathfind");
-    let result = galaxy.get_sum_shortest_paths();
-    println!("End Pathfind");
+    let result = get_galaxy(input).get_sum_shortest_paths();
 
     println!("Result {}", result);
     result
@@ -71,17 +65,13 @@ fn get_galaxy(input: String) -> Galaxy {
         i += 1;
     }
 
-    for line in input.lines() {
-        let mut chars: Vec<char> = line.chars().collect();
-        for col in cols_to_expand.iter().rev() {
-            chars.insert(*col, '.');
-        }
+    let mut rows_to_expand: Vec<usize> = vec![];
+    for (i, line) in input.lines().enumerate() {
+        rows.push(line.chars().collect_vec());
 
         if !line.contains('#') {
-            rows.push(chars.clone());
+            rows_to_expand.push(i)
         }
-
-        rows.push(chars);
     }
 
     // Get nodes
