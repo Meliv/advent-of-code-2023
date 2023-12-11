@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use regex::Regex;
 
 const INPUT_FILE_PATH: &str = "src/inputs/day_11.txt";
@@ -8,9 +9,10 @@ pub fn run() -> usize {
 
     let galaxy: Galaxy = get_galaxy(input);
 
-    println!("{:?}", galaxy.get(0, 11));
+    println!("Node Count {}", galaxy.nodes.iter().filter(|n| n.value == '#').count());
+    println!("Node Pair Count: {:?}", galaxy.node_pairs.len());
 
-    //println!("{:?}", galaxy);
+    galaxy.print();
 
     374
 }
@@ -18,14 +20,25 @@ pub fn run() -> usize {
 #[derive(Debug)]
 struct Galaxy {
     nodes: Vec<Node>,
+    node_pairs: Vec<(Node, Node)>,
+    width: usize
 }
 impl Galaxy {
     fn get(&self, x: usize, y: usize) -> &Node {
         self.nodes.iter().find(|n| n.x == x && n.y == y).unwrap()
     }
+
+    fn print(&self) {
+        for chunk in self.nodes.chunks(self.width+1){
+            for c in chunk {
+                print!("{}", c.value);
+            }
+            println!();
+        }
+    }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 struct Node {
     x: usize,
     y: usize,
@@ -73,7 +86,29 @@ fn get_galaxy(input: String) -> Galaxy {
         }
     }
 
-    Galaxy { nodes }
+    // Get node pairs
+    let mut node_pairs: Vec<(Node, Node)> = Vec::new();
+    let hash_nodes: Vec<&Node> = nodes.iter().filter(|&n| n.value == '#').collect();
+
+    println!("Hash Nodes: {:?}", hash_nodes);
+
+    for (i, node1) in hash_nodes.iter().enumerate() {
+        for node2 in &hash_nodes[i + 1..] {
+
+            // Debug
+            if node1.x != node2.x && node1.y != node2.y {
+                let first_pair: (Node, Node) = (**node1, **node2);
+                let second_pair: (Node, Node) = (**node2, **node1);
+
+                if !node_pairs.contains(&first_pair) && !node_pairs.contains(&second_pair) {
+                    //println!("Added {:?}, {:?}", first_pair.0, first_pair.1);
+                    node_pairs.push(first_pair);
+                }
+            }
+        }
+    }
+
+    Galaxy { nodes, node_pairs, width: rows.len() }
 }
 
 #[cfg(test)]
