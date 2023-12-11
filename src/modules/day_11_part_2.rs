@@ -5,7 +5,7 @@ const INPUT_FILE_PATH: &str = "src/inputs/day_11.txt";
 pub fn run() -> usize {
     let input = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
 
-    let result = get_universe(input, 2).get_sum_shortest_paths();
+    let result = get_universe(input, 1000000).get_sum_shortest_paths();
 
     println!("Result {}", result);
     result
@@ -95,7 +95,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn day11_part1_test() {
-        assert_eq!(run(), 9918828);
+    fn day11_part2_test() {
+        assert_eq!(run(), 692506533832);
     }
 }
