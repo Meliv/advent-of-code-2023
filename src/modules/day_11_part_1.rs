@@ -28,14 +28,28 @@ impl Galaxy {
     fn get_sum_shortest_paths(&self) -> usize {
         let mut result = 0;
         for pair in &self.node_pairs {
-            let small_x = pair.0.x.min(pair.1.x);
-            let large_x = pair.0.x.max(pair.1.x);
-            let small_y = pair.0.y.min(pair.1.y);
-            let large_y = pair.0.y.max(pair.1.y);
-            result += (large_x - small_x) + (large_y - small_y);
+
+            /*
+            println!();
+            println!("{:?}", pair);
+            
+            println!("({}-{})+({}-{})",
+            pair.0.x.max(pair.1.x),
+            pair.0.x.min(pair.1.x),
+            pair.0.y.max(pair.1.y),
+            pair.0.y.min(pair.1.y));
+            
+            println!("{}+{}={}",
+            pair.0.x.max(pair.1.x) - pair.0.x.min(pair.1.x),
+            pair.0.y.max(pair.1.y) - pair.0.y.min(pair.1.y),
+            (pair.0.x.max(pair.1.x) - pair.0.x.min(pair.1.x)) + (pair.0.y.max(pair.1.y) - pair.0.y.min(pair.1.y)));
+            
+            */
+            result += (pair.0.x.max(pair.1.x) - pair.0.x.min(pair.1.x))
+            + (pair.0.y.max(pair.1.y) - pair.0.y.min(pair.1.y)) - 1;
         }
 
-        result
+        result - self.nodes.iter().filter(|n| n.value == '#').count() - 1
     }
 }
 
@@ -77,9 +91,21 @@ fn get_galaxy(input: String) -> Galaxy {
     // Get nodes
     let mut nodes: Vec<Node> = vec![];
 
+    println!("Cols to expand {:?}", cols_to_expand);
+    println!("Rows to expand {:?}", rows_to_expand);
+
     for (y, row) in rows.iter().enumerate() {
         for (x, c) in row.iter().enumerate() {
-            nodes.push(Node { x, y, value: *c });
+
+            let e_mod = 2; // Expect 1030
+            let mut x_mod = cols_to_expand.iter().filter(|c| c < &&x).count() * e_mod;
+            let mut y_mod = rows_to_expand.iter().filter(|c| c < &&y).count() * e_mod;
+
+            x_mod = x_mod.saturating_sub(1);
+            y_mod = y_mod.saturating_sub(1);
+
+
+            nodes.push(Node { x: x_mod + x, y: y_mod + y, value: *c });
         }
     }
 
