@@ -9,9 +9,6 @@ pub fn run() -> usize {
 
     let galaxy: Galaxy = get_galaxy(input);
 
-    println!("Node Count {}", galaxy.nodes.iter().filter(|n| n.value == '#').count());
-    println!("Node Pair Count: {:?}", galaxy.node_pairs.len());
-
     galaxy.print();
 
     374
@@ -21,7 +18,8 @@ pub fn run() -> usize {
 struct Galaxy {
     nodes: Vec<Node>,
     node_pairs: Vec<(Node, Node)>,
-    width: usize
+    // For debugging purposes
+    width: usize,
 }
 impl Galaxy {
     fn get(&self, x: usize, y: usize) -> &Node {
@@ -29,7 +27,7 @@ impl Galaxy {
     }
 
     fn print(&self) {
-        for chunk in self.nodes.chunks(self.width+1){
+        for chunk in self.nodes.chunks(self.width + 1) {
             for c in chunk {
                 print!("{}", c.value);
             }
@@ -90,25 +88,22 @@ fn get_galaxy(input: String) -> Galaxy {
     let mut node_pairs: Vec<(Node, Node)> = Vec::new();
     let hash_nodes: Vec<&Node> = nodes.iter().filter(|&n| n.value == '#').collect();
 
-    println!("Hash Nodes: {:?}", hash_nodes);
-
     for (i, node1) in hash_nodes.iter().enumerate() {
         for node2 in &hash_nodes[i + 1..] {
+            let first_pair: (Node, Node) = (**node1, **node2);
+            let second_pair: (Node, Node) = (**node2, **node1);
 
-            // Debug
-            if node1.x != node2.x && node1.y != node2.y {
-                let first_pair: (Node, Node) = (**node1, **node2);
-                let second_pair: (Node, Node) = (**node2, **node1);
-
-                if !node_pairs.contains(&first_pair) && !node_pairs.contains(&second_pair) {
-                    //println!("Added {:?}, {:?}", first_pair.0, first_pair.1);
-                    node_pairs.push(first_pair);
-                }
+            if !node_pairs.contains(&first_pair) && !node_pairs.contains(&second_pair) {
+                node_pairs.push(first_pair);
             }
         }
     }
 
-    Galaxy { nodes, node_pairs, width: rows.len() }
+    Galaxy {
+        nodes,
+        node_pairs,
+        width: rows.len(),
+    }
 }
 
 #[cfg(test)]
