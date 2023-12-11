@@ -1,7 +1,7 @@
 use itertools::Itertools;
 use regex::Regex;
-use std::collections::{BinaryHeap, HashMap};
 use std::cmp::Ordering;
+use std::collections::{BinaryHeap, HashMap};
 
 const INPUT_FILE_PATH: &str = "src/inputs/day_11.txt";
 const GALAXY_REGEX: &str = "#";
@@ -25,34 +25,27 @@ pub fn run() -> usize {
 struct Galaxy {
     nodes: Vec<Node>,
     node_pairs: Vec<(Node, Node)>,
-    width: usize,
-    height: usize
 }
 impl Galaxy {
     fn get(&self, x: usize, y: usize) -> &Node {
         self.nodes.iter().find(|n| n.x == x && n.y == y).unwrap()
     }
 
-    fn print(&self) {
-        for chunk in self.nodes.chunks(self.width) {
-            for c in chunk {
-                print!("{}", c.value);
-            }
-            println!();
-        }
-    }
-
     fn get_sum_shortest_paths(&self) -> usize {
         let mut result = 0;
-        let astar = AStar::new(self);
-        for node_pair in &self.node_pairs {
-            result += astar.find_path(node_pair.0, node_pair.1).unwrap();
+        for pair in &self.node_pairs {
+            let small_x = pair.0.x.min(pair.1.x);
+            let large_x = pair.0.x.max(pair.1.x);
+            let small_y = pair.0.y.min(pair.1.y);
+            let large_y = pair.0.y.max(pair.1.y);
+            result += (large_x - small_x) + (large_y - small_y);
         }
+
         result
     }
 }
 
-#[derive(Debug, PartialEq, Copy, Clone, Eq, Hash)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 struct Node {
     x: usize,
     y: usize,
@@ -115,101 +108,7 @@ fn get_galaxy(input: String) -> Galaxy {
         }
     }
 
-    Galaxy {
-        nodes,
-        node_pairs,
-        width: rows.first().unwrap().len(),
-        height: rows.len()
-    }
-}
-
-#[derive(Clone, Copy, Eq, PartialEq)]
-struct Path {
-    node: Node,
-    cost: usize,
-}
-
-impl Ord for Path {
-    fn cmp(&self, other: &Self) -> Ordering {
-        other.cost.cmp(&self.cost)
-    }
-}
-
-impl PartialOrd for Path {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-struct AStar<'a> {
-    galaxy: &'a Galaxy,
-    width: usize,
-    height: usize,
-}
-
-impl<'a> AStar<'a> {
-    fn new(galaxy: &'a Galaxy) -> AStar<'a> {
-        let height = galaxy.height;
-        let width = galaxy.width;
-        AStar { galaxy, width, height }
-    }
-
-    fn heuristic(&self, from: Node, to: Node) -> usize {
-        let dx = if from.x > to.x { from.x - to.x } else { to.x - from.x };
-        let dy = if from.y > to.y { from.y - to.y } else { to.y - from.y };
-        dx + dy
-    }
-
-    fn find_path(&self, start: Node, goal: Node) -> Option<usize> {
-        let mut open_set = BinaryHeap::new();
-        let mut came_from: HashMap<Node, Node> = HashMap::new();
-        let mut g_score: HashMap<Node, usize> = HashMap::new();
-
-        open_set.push(Path { node: start, cost: 0 });
-        g_score.insert(start, 0);
-
-        while let Some(Path { node, cost }) = open_set.pop() {
-            if node == goal {
-                let mut path = vec![];
-                let mut current = node;
-                while let Some(&prev) = came_from.get(&current) {
-                    path.push(prev);
-                    current = prev;
-                }
-                path.reverse();
-                return Some(path.len());
-            }
-
-            for neighbor in self.get_neighbors(node) {
-                let tentative_g_score = g_score[&node] + 1;
-                if tentative_g_score < *g_score.get(&neighbor).unwrap_or(&usize::MAX) {
-                    came_from.insert(neighbor, node);
-                    g_score.insert(neighbor, tentative_g_score);
-                    let priority = tentative_g_score + self.heuristic(neighbor, goal);
-                    open_set.push(Path { node: neighbor, cost: priority });
-                }
-            }
-        }
-
-        None
-    }
-
-    fn get_neighbors(&self, node: Node) -> Vec<Node> {
-        let mut neighbors = Vec::new();
-        if node.x > 0 {
-            neighbors.push(Node { x: node.x - 1, y: node.y, value: node.value });
-        }
-        if node.x < self.width - 1 {
-            neighbors.push(Node { x: node.x + 1, y: node.y, value: node.value });
-        }
-        if node.y > 0 {
-            neighbors.push(Node { x: node.x, y: node.y - 1, value: node.value });
-        }
-        if node.y < self.height - 1 {
-            neighbors.push(Node { x: node.x, y: node.y + 1, value: node.value });
-        }
-        neighbors
-    }
+    Galaxy { nodes, node_pairs }
 }
 
 #[cfg(test)]
@@ -218,6 +117,6 @@ mod tests {
 
     #[test]
     fn day11_part1_test() {
-        assert_eq!(run(), 374);
+        assert_eq!(run(), 9918828);
     }
 }
