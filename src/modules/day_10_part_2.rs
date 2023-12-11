@@ -97,10 +97,10 @@ pub fn run() -> usize {
     replace_loop_pipe(&mut map);
 
     let mut yyy: Option<(isize, isize)> = None;
-    for (i_x, row) in map.iter().enumerate() {
+    for (i_y, row) in map.iter().enumerate() {
         let mut in_loop: bool = row.first().unwrap() == &'S';
 
-        for (i_y, chunk) in row.chunks(2).enumerate() {
+        for (i_x, chunk) in row.chunks(2).enumerate() {
             match chunk {
                 ['S', 'S'] => {}
                 [_, 'S'] => in_loop = true,
@@ -108,12 +108,12 @@ pub fn run() -> usize {
                     if in_loop {
                         in_loop = false
                     } else {
-                        yyy = Some((i_x as isize, i_y as isize + 1))
+                        yyy = Some((i_x as isize, i_y as isize))
                     }
                 }
                 [_, _] => {
                     if in_loop {
-                        yyy = Some((i_x as isize, i_y as isize + 1))
+                        yyy = Some((i_x as isize, i_y as isize))
                     }
                 }
                 _ => unreachable!(),
@@ -125,21 +125,41 @@ pub fn run() -> usize {
         }
     }
 
-    if yyy.is_none() {
-        panic!("Couldn't find inner boundary");
-    }
-    
-        for x in &map {
-            for c in x {
-                print!("{}", c);
+    for (i_y, row) in map.iter_mut().enumerate() {
+        for (i_x, c) in row.iter().enumerate() {
+            let ray_count:(isize, isize) = shoot_ray(map, i_x as isize, i_y as isize);
+            if ray_count.0 % 2 == 1 && ray_count.1 % 2 == 1{
+                set_x_y(&mut map, i_x as isize, i_y as isize, 'X');
             }
-            println!();
         }
+    }
     //let test_x_y = (1, 1); // For testing
-    flood_fill(&mut map, col_count, row_count, yyy.unwrap().0, yyy.unwrap().1);
+    /*
+    flood_fill(
+        &mut map,
+        col_count,
+        row_count,
+        yyy.unwrap().0,
+        yyy.unwrap().1,
+    );
+
+    */
+
+    for x in &map {
+        for c in x {
+            print!("{}", c);
+        }
+        println!();
+    }
 
     0
 }
+
+fn shoot_ray(map: &mut Vec<Vec<char>>, i_x: isize, i_y: isize) -> (isize, isize) {
+
+    (0,0)
+}
+
 
 fn flood_fill(input: &mut Vec<Vec<char>>, row_count: usize, col_count: usize, x: isize, y: isize) {
     let mut queue: VecDeque<(isize, isize)> = VecDeque::new();
