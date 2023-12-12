@@ -1,12 +1,36 @@
+use std::str::FromStr;
+
 const INPUT_FILE_PATH: &str = "src/inputs/day_12.txt";
 
 pub fn run() -> usize {
-    let input = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
+    let _ = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
 
-    let result = 0;
+    
+    let input = String::from("???.###");
+    let groups: Vec<usize> = vec![1,1,3];
+    
+    let result = SpringField::new(input, groups).get_permutations();
 
     println!("Result {}", result);
     result
+}
+
+struct SpringField {
+    input: String,
+    groups: Vec<usize>,
+}
+
+
+impl SpringField {
+
+    fn new(input: String, groups: Vec<usize>) -> SpringField {
+        SpringField {input, groups }
+    }
+
+    fn get_permutations(&self) -> usize {
+        
+        0
+    }
 }
 
 #[cfg(test)]
