@@ -97,22 +97,7 @@ pub fn run() -> usize {
 
     let filtered_map = replace_loop_pipe(&mut map);
 
-    for x in &filtered_map {
-        for c in x {
-            print!("{}", c);
-        }
-        println!();
-    }
-    println!();
-
     let result = ray_count(&map, &filtered_map);
-
-    for x in &map {
-        for c in x {
-            print!("{}", c);
-        }
-        println!();
-    }
 
     println!("Result: {}", result);
 
@@ -193,7 +178,6 @@ fn ray_count(map: &Vec<Vec<char>>, filtered_map: &Vec<Vec<char>>) -> usize {
             let odd_left = north_count > 0 && south_count > 0 && north_count % 2 == 1 && south_count % 2 == 1;
 
             if odd_left && odd_right {
-                println!("match at x {} y {}", i_x, i_y);
                 match_count += 1;
             }
         }
@@ -208,7 +192,6 @@ fn get_x_y(input: &Vec<Vec<char>>, x: isize, y: isize) -> char {
 }
 
 fn set_x_y(input: &mut Vec<Vec<char>>, x: isize, y: isize, v: char) {
-    println!("set_x_y x:{} y:{}", x, y);
     let rows = input.get_mut(y as usize).unwrap();
     *rows.get_mut(x as usize).unwrap() = v;
 }
