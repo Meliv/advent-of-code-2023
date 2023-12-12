@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{str::FromStr, collections::HashSet};
 
 const INPUT_FILE_PATH: &str = "src/inputs/day_12.txt";
 
@@ -18,18 +18,25 @@ pub fn run() -> usize {
 struct SpringField {
     input: String,
     groups: Vec<usize>,
+    permutations: HashSet<String>
 }
 
 
 impl SpringField {
 
     fn new(input: String, groups: Vec<usize>) -> SpringField {
-        SpringField {input, groups }
+        SpringField {input, groups, permutations: HashSet::new() }
     }
 
     fn get_permutations(&self) -> usize {
         
-        0
+
+        self.permutations.len()
+    }
+
+    fn calculate_group() -> String {
+
+        String::new()
     }
 }
 
