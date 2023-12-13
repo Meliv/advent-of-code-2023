@@ -11,10 +11,10 @@ pub fn run() -> usize {
     let test_data: Vec<(String, Vec<usize>)> = vec![
         //(String::from("???.###"), vec![1,1,3]), // Expect 1, Actual 0
         //(String::from(".??..??...?##."), vec![1,1,3]), // Expect 4, Actual 4
-        //(String::from("?#?#?#?#?#?#?#?"), vec![1,3,1,6]), // Expect 1, Actual 0
+        //(String::from("?#?#?#?#?#?#?#?"), vec![1,3,1,6]), // Expect 1, Actual 1
         //(String::from("????.#...#..."), vec![4,1,1]), // Expect 1, Actual 1
         //(String::from("????.######..#####."), vec![1,6,5]), // Expect 4, Actual 2
-        //(String::from("?###????????"), vec![3,2,1]), // Expect 10, Actual 8
+        (String::from("?###????????"), vec![3,2,1]), // Expect 10, Actual 9
     ];
 
     let mut result = 0;
@@ -56,9 +56,15 @@ impl SpringField {
 
         while start < input.len() {
             // Almost certainly not right
-            let g = *groups.first().unwrap();
+            let g_opt = groups.first();
+            let g = match g_opt {
+                Some(g) => g,
+                None => return
+            };
+
             let mut updated_string_vec: Vec<char> = input.chars().collect();
 
+            // Bit of a hack but I got bored of handling off by 1 errors
             if updated_string_vec[start] == '.' {
                 return;
             }
@@ -72,26 +78,24 @@ impl SpringField {
                 None => input.len() - 1,
             };
 
-            // .....
-            // start 3
-            // group 2
+            // Something here specifically about when strings end in . and when they don't
+
             if start + g < input.len() && start + g <= end {
                 updated_string_vec[start..start + g].fill('#');
             } else {
                 return;
             }
 
+            // This is causing issues I think
             if start + g < input.len() {
                 updated_string_vec[start + g] = '.';
             }
 
-            // For some reason we need to do .map here or it breaks the borring
             let mut updated_string: String = updated_string_vec.iter().collect();
-            // let updated_string: String = updated_string_vec.iter().collect();
 
             let next = updated_string
                 .char_indices()
-                .find(|x| x.0 > start + g + 1 && (x.1 == '?' || x.1 == '#'));
+                .find(|x| x.0 > start + g && (x.1 == '?' || x.1 == '#'));
 
             match next {
                 Some(n) => {
