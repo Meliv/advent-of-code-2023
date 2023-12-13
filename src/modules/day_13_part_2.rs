@@ -21,7 +21,7 @@ pub fn run() -> usize {
             None => match vertical(field) {
                 Some(v) => result += v,
                 None => {
-                    println!("Failed on input {}", i+1);
+                    println!("Failed on input {}", i + 1);
                     panic!()
                 }
             },
@@ -58,8 +58,8 @@ fn vertical(input: &str) -> Option<usize> {
 
 fn horizontal(input: &str) -> Option<usize> {
     for (a, b) in input.lines().enumerate().tuple_windows() {
-        if a.1 == b.1 {
-            let backtrace = back_trace(input, a.0, b.0);
+        if a.0 == b.0 || smudge_compare(a.1, b.1) {
+            let backtrace = back_trace(input, a.0 - 1, b.0 + 1);
             if backtrace.is_some() {
                 return backtrace;
             }
@@ -73,19 +73,55 @@ fn back_trace(input: &str, a: usize, b: usize) -> Option<usize> {
     let mut a_i = a as isize;
     let mut b_i = b;
 
+    let mut smudge_compare_count = 0;
+    let mut compare_count = 0;
     while a_i >= 0 && b_i < input.lines().count() {
         let a_s = input.lines().nth(a_i as usize).unwrap();
         let b_s = input.lines().nth(b_i).unwrap();
 
-        if a_s != b_s {
-            return None;
+        if a_s != b_s && smudge_compare(a_s, b_s) {
+            smudge_compare_count += 1;
+        } else if a_s == b_s {
+            compare_count += 1;
         }
 
         a_i -= 1;
         b_i += 1;
     }
 
-    Some(a)
+    if smudge_compare_count == 1 {
+        return Some(b);
+    }
+
+    None
+}
+
+fn smudge_compare(a: &str, b: &str) -> bool {
+    let mut a_chars: Vec<char> = a.chars().collect_vec();
+    let b_chars: Vec<char> = b.chars().collect_vec();
+
+    let mut i = 0;
+    while i < a.len() {
+        a_chars[i] = flip_char(a_chars[i]);
+
+        if a_chars == b_chars {
+            return true;
+        }
+
+        a_chars[i] = flip_char(a_chars[i]);
+
+        i += 1;
+    }
+
+    false
+}
+
+fn flip_char(c: char) -> char {
+    match c {
+        '#' => '.',
+        '.' => '#',
+        _ => panic!(),
+    }
 }
 
 #[cfg(test)]
