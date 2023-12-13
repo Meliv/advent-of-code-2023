@@ -85,7 +85,7 @@ fn back_trace(input: &str, a: usize, b: usize) -> Option<usize> {
         b_i += 1;
     }
 
-    Some(a)
+    Some(b)
 }
 
 #[cfg(test)]
