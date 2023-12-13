@@ -8,12 +8,20 @@ const GROUP_REGEX: &str = r"[?|#]*[^\.|\r|\n]";
 pub fn run() -> usize {
     //let _ = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
 
-    //.??..??...?##. 1,1,3
-    //let input = String::from(".??..??...?##.");
-    let input = String::from(".??..??...?##."); // Expect 4
-    let groups: Vec<usize> = vec![1, 1, 3];
+    let test_data: Vec<(String, Vec<usize>)> = vec![
+        //(String::from("???.###"), vec![1,1,3]), // Expect 1, Actual 0
+        //(String::from(".??..??...?##."), vec![1,1,3]), // Expect 4, Actual 4
+        //(String::from("?#?#?#?#?#?#?#?"), vec![1,3,1,6]), // Expect 1, Actual 0
+        //(String::from("????.#...#..."), vec![4,1,1]), // Expect 1, Actual 1
+        //(String::from("????.######..#####."), vec![1,6,5]), // Expect 4, Actual 2
+        //(String::from("?###????????"), vec![3,2,1]), // Expect 10, Actual 8
+    ];
 
-    let result = SpringField::new(input, groups).get_permutations();
+    let mut result = 0;
+    
+    for td in test_data {
+        result += SpringField::new(td.0, td.1).get_permutations();
+    }
 
     println!("Result {}", result);
     result
