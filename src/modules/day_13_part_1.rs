@@ -9,16 +9,22 @@ pub fn run() -> usize {
     let mut result = 0;
 
     let fields: Vec<String> = input
-        .split_terminator("\n\r\n")
+        .split_terminator("\r\n\r\n")
         .map(|s| s.to_string())
         .collect();
 
-    for field in fields {
-        let r = horizontal(&field);
+    for (i, field) in fields.iter().enumerate() {
+        let r = horizontal(field);
 
         match r {
             Some(r) => result += r * 100,
-            None => result += vertical(&field),
+            None => match vertical(field) {
+                Some(v) => result += v,
+                None => {
+                    println!("Failed on input {}", i+1);
+                    panic!()
+                }
+            },
         }
     }
 
@@ -26,7 +32,7 @@ pub fn run() -> usize {
     result
 }
 
-fn vertical(input: &str) -> usize {
+fn vertical(input: &str) -> Option<usize> {
     let mut rotated_input_chars: Vec<Vec<char>> = vec![];
 
     let mut i = 0;
@@ -36,31 +42,50 @@ fn vertical(input: &str) -> usize {
             let c = line.chars().nth(i).unwrap();
             new_line.push(c);
         }
-        rotated_input_chars.push(new_line);
+        let x: Vec<char> = new_line.iter().rev().copied().collect::<Vec<char>>();
+        rotated_input_chars.push(x);
         i += 1;
     }
 
     let rotated_input: String = rotated_input_chars
         .iter()
-        .flat_map(|inner_vec| inner_vec.iter())
-        .collect();
+        .map(|inner_vec| inner_vec.iter().collect::<String>())
+        .collect::<Vec<String>>()
+        .join("\n");
 
-    println!("Vertical");
-    println!("{}", input);
-
-    horizontal(&rotated_input).unwrap() // Assuming because it wasn't horizontal it must be vertical
+    horizontal(&rotated_input)
 }
 
 fn horizontal(input: &str) -> Option<usize> {
+    for (a, b) in input.lines().enumerate().tuple_windows() {
+        if a.1 == b.1 {
+            let backtrace = back_trace(input, a.0, b.0);
+            if backtrace.is_some() {
+                return backtrace;
+            }
+        }
+    }
 
-    println!("Horizontal");
-    println!("{}", input);
+    None
+}
 
-    input
-        .lines()
-        .enumerate()
-        .tuple_windows()
-        .find_map(|(a, b)| if a.1 == b.1 { Some(b.0) } else { None })
+fn back_trace(input: &str, a: usize, b: usize) -> Option<usize> {
+    let mut a_i = a as isize;
+    let mut b_i = b;
+
+    while a_i >= 0 && b_i < input.lines().count() {
+        let a_s = input.lines().nth(a_i as usize).unwrap();
+        let b_s = input.lines().nth(b_i).unwrap();
+
+        if a_s != b_s {
+            return None;
+        }
+
+        a_i -= 1;
+        b_i += 1;
+    }
+
+    Some(b)
 }
 
 #[cfg(test)]
@@ -68,7 +93,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn day12_part1_test() {
-        assert_eq!(run(), 405);
+    fn day13_part1_test() {
+        assert_eq!(run(), 37113);
     }
 }
