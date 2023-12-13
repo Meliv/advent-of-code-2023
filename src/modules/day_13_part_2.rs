@@ -58,8 +58,8 @@ fn vertical(input: &str) -> Option<usize> {
 
 fn horizontal(input: &str) -> Option<usize> {
     for (a, b) in input.lines().enumerate().tuple_windows() {
-        if a.0 == b.0 || smudge_compare(a.1, b.1) {
-            let backtrace = back_trace(input, a.0 - 1, b.0 + 1);
+        if a.1 == b.1 || smudge_compare(a.1, b.1) {
+            let backtrace = back_trace(input, a.0, b.0);
             if backtrace.is_some() {
                 return backtrace;
             }
@@ -74,15 +74,15 @@ fn back_trace(input: &str, a: usize, b: usize) -> Option<usize> {
     let mut b_i = b;
 
     let mut smudge_compare_count = 0;
-    let mut compare_count = 0;
     while a_i >= 0 && b_i < input.lines().count() {
         let a_s = input.lines().nth(a_i as usize).unwrap();
         let b_s = input.lines().nth(b_i).unwrap();
 
-        if a_s != b_s && smudge_compare(a_s, b_s) {
-            smudge_compare_count += 1;
-        } else if a_s == b_s {
-            compare_count += 1;
+        if a_s != b_s {
+            match smudge_compare(a_s, b_s) {
+                true => smudge_compare_count += 1,
+                false => return None
+            };
         }
 
         a_i -= 1;
@@ -129,7 +129,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn day13_part1_test() {
-        assert_eq!(run(), 37113);
+    fn day13_part2_test() {
+        assert_eq!(run(), 30449);
     }
 }
