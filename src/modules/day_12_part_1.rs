@@ -9,8 +9,9 @@ pub fn run() -> usize {
     //let _ = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
 
     //.??..??...?##. 1,1,3
-    let input = String::from(".??..??...?##.");
-    let groups: Vec<usize> = vec![1,1,3];
+    //let input = String::from(".??..??...?##.");
+    let input = String::from(".??..??...?##."); // Expect 4
+    let groups: Vec<usize> = vec![1, 1, 3];
 
     let result = SpringField::new(input, groups).get_permutations();
 
@@ -39,40 +40,69 @@ impl SpringField {
         self.permutations.len()
     }
 
-    fn calculate_permutations(
-        &mut self,
-        input: String,
-        start: usize,
-        groups: Vec<usize>,
-    ) {
-        //????.??? 1,1,3
-        //.???.### 1,1,3
+    fn calculate_permutations(&mut self, input: String, mut start: usize, groups: Vec<usize>) {
+        //let input = String::from(".??..??...");
+        //let groups: Vec<usize> = vec![1, 2];
 
+        // Start needs to increase here to allow the loop to move over the first group
 
-        for g in &groups {
-            
-            let mut i: usize = 0;
-            let mut updated_string: String = input.clone();
-            while i < *g {
-                updated_string.replace_range(start+i..start+i+1, "#");
-                i += 1;
+        while start < input.len() {
+            // Almost certainly not right
+            let g = *groups.first().unwrap();
+            let mut updated_string_vec: Vec<char> = input.chars().collect();
+
+            if updated_string_vec[start] == '.' {
+                return;
             }
-            updated_string.replace_range(start+i..start+i+1, "."); // Todo, make sure this doesn't overflow when we just replaced the last char in string
 
+            let end = match input
+                .chars()
+                .enumerate()
+                .find(|(i, x)| i > &start && x == &'.')
+            {
+                Some(n) => n.0,
+                None => input.len() - 1,
+            };
 
-            let next = updated_string.char_indices().find(|x| x.0 > start + g && x.1 == '?'); // Todo or #
+            // .....
+            // start 3
+            // group 2
+            if start + g < input.len() && start + g <= end {
+                updated_string_vec[start..start + g].fill('#');
+            } else {
+                return;
+            }
+
+            if start + g < input.len() {
+                updated_string_vec[start + g] = '.';
+            }
+
+            // For some reason we need to do .map here or it breaks the borring
+            let mut updated_string: String = updated_string_vec.iter().collect();
+            // let updated_string: String = updated_string_vec.iter().collect();
+
+            let next = updated_string
+                .char_indices()
+                .find(|x| x.0 > start + g + 1 && (x.1 == '?' || x.1 == '#'));
 
             match next {
                 Some(n) => {
-                    self.calculate_permutations(updated_string, n.0, groups[1..].to_vec()); // Loop here?
+                    self.calculate_permutations(updated_string, n.0, groups[1..].to_vec());
                 }
-                None => { // We've reached the end
+                None => {
+                    // We've reached the end
                     // Valid permutation
-                    if updated_string.chars().filter(|c| c == &'#').count() == self.groups.iter().sum() {
+                    if updated_string.chars().filter(|c| c == &'#').count()
+                        == self.groups.iter().sum()
+                    {
+                        updated_string = updated_string.replace('?', ".");
+                        println!("{}", updated_string);
+
                         self.permutations.insert(updated_string);
                     }
                 }
             }
+            start += 1;
         }
     }
 }
