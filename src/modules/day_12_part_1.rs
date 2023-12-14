@@ -10,10 +10,10 @@ pub fn run() -> usize {
 
     let test_data: Vec<(String, Vec<usize>)> = vec![
         //(String::from("???.###"), vec![1,1,3]), // Expect 1, Actual 1
-        //(String::from(".??..??...?##."), vec![1,1,3]), // Expect 4, Actual 4
+        (String::from(".??..??...?##."), vec![1,1,3]), // Expect 4, Actual 4
         //(String::from("?#?#?#?#?#?#?#?"), vec![1, 3, 1, 6]), // Expect 1, Actual 1
         //(String::from("????.#...#..."), vec![4,1,1]), // Expect 1, Actual 1
-        (String::from("????.######..#####."), vec![1,6,5]), // Expect 4, Actual 2
+        //(String::from("????.######..#####."), vec![1,6,5]), // Expect 4, Actual 2
         //(String::from("?###????????"), vec![3,2,1]), // Expect 10, Actual 11
     ];
 
@@ -68,11 +68,6 @@ impl SpringField {
 
             let mut updated_string_vec: Vec<char> = input.chars().collect();
 
-            // Bit of a hack but I got bored of handling off by 1 errors
-            if updated_string_vec[start] == '.' {
-                return;
-            }
-
             let end = match input
                 .chars()
                 .enumerate()
@@ -81,13 +76,33 @@ impl SpringField {
                 Some(n) => n.0 - 1,
                 None => input.len() - 1,
             };
+            
 
-            // Something here specifically about when strings end in . and when they don't
 
-            // ??..... // start 0 end 2 group 2
-            // ##.....
-            // ??..... // start 1 end 2 group 2
 
+            /*
+            
+            This whole code has gotten ridiculous
+
+            Here's all you need to do
+            Given input of //.??.??.### [1,1,3]
+            1. Find the first group of chars (.find(?/#) for the start, .find(.) for the end (end of line if not found))
+                1b. Insert into that group
+                1c. Insert a . after what you just inserted. If that char is a '#' (shouldn't be), then bomb out. 
+                    This check shouldn't be needed as you should be finding groups between . chars with your start/end
+                1d. Recursively call the method, passing in the next self.group and the next start (.find(?/#) from end of group you just placed into)
+            
+            2. If the group of ?# chars is bigger than the group you're working with, find the next group
+            3. If you're ever about to overflow the string, continue. Maybe return. Probably return as incrementing
+               count is almost certainly not going to cause it all to fit this time
+
+
+             */
+            
+
+
+            
+            let mut abc = start+g;
             //if start + g <= input.len() && end - start <= *g {
             if end - start + 1 >= *g {
                 updated_string_vec[start..start + g].fill('#');
@@ -100,6 +115,9 @@ impl SpringField {
                         updated_string_vec[start + g] = '.';
                     }
                 }
+            } else {
+                start += 1;
+                continue;
             }
 
             let mut updated_string: String = updated_string_vec.iter().collect();
@@ -122,6 +140,7 @@ impl SpringField {
                         println!("{}", updated_string);
 
                         self.permutations.insert(updated_string);
+                        return;
                     }
                 }
             }
