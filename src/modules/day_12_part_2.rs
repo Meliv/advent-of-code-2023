@@ -7,49 +7,37 @@ const INPUT_FILE_PATH: &str = "src/inputs/day_12.txt";
 const GROUP_REGEX: &str = r"[?|#]*[^\.|\r|\n]";
 
 pub fn run() -> usize {
-
     let mut result = 0;
 
-    let test_data: Vec<(String, Vec<usize>)> = vec![
-        (String::from("???.###????.###????.###????.###????.###"), vec![1,1,3,1,1,3,1,1,3,1,1,3,1,1,3]), // Expect 1, Actual 1
-        (String::from(".??..??...?##.?.??..??...?##.?.??..??...?##.?.??..??...?##.?.??..??...?##."), vec![1, 1, 3,1, 1, 3,1, 1, 3,1, 1, 3,1, 1, 3]), // Expect 4, Actual 4
-        (String::from("?#?#?#?#?#?#?#???#?#?#?#?#?#?#???#?#?#?#?#?#?#???#?#?#?#?#?#?#???#?#?#?#?#?#?#?"), vec![1, 3, 1, 6,1, 3, 1, 6,1, 3, 1, 6,1, 3, 1, 6,1, 3, 1, 6]), // Expect 1, Actual 1
-        (String::from("????.#...#...?????.#...#...?????.#...#...?????.#...#...?????.#...#..."), vec![4,1,1,4,1,1,4,1,1,4,1,1,4,1,1]), // Expect 1, Actual 1
-        (String::from("????.######..#####.?????.######..#####.?????.######..#####.?????.######..#####.?????.######..#####."), vec![1,6,5,1,6,5,1,6,5,1,6,5,1,6,5]), // Expect 4, Actual 2
-        (String::from("?###??????????###??????????###??????????###??????????###????????"), vec![3,2,1,3,2,1,3,2,1,3,2,1,3,2,1]), // Expect 10, Actual 11
-        ];
-        for td in test_data {
-            println!("x");
-            result += SpringField::new(td.0, td.1).get_permutations();
-        }
-
-    /*
     let test_data: Vec<(String, Vec<usize>)> = get_input();
-    
+
+    let mut counter = 1;
     for td in test_data {
+        println!("Count: {}", counter);
         result += SpringField::new(td.0, td.1).get_permutations();
+    
+        counter += 1;
     }
-    */
+
     println!("Result {}", result);
     result
 }
 
 fn get_input() -> Vec<(String, Vec<usize>)> {
     let input = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
-
-    // Some proper 2am coding here
-
     let mut result: Vec<(String, Vec<usize>)> = vec![];
     for line in input.lines() {
-        let split: Vec<&str> = line.split_whitespace().collect();
-        let x: String = split.first().unwrap().to_string();
+        let split = line.split_once(' ').unwrap();
+        let string: String = std::iter::repeat(split.0).take(5).collect_vec().join("?");
+        let groups: Vec<usize> = split
+            .1
+            .split(',')
+            .map(str::parse)
+            .collect::<Result<Vec<usize>, _>>()
+            .unwrap()
+            .repeat(5);
 
-        let y: Vec<usize> = split.get(1).unwrap()
-        .split(',')
-        .filter_map(|s| s.parse().ok()) // Parse each substring into usize
-        .collect();
-
-        result.push((x,y));
+        result.push((string, groups));
     }
     result
 }
@@ -145,7 +133,7 @@ impl SpringField {
                     if updated_string.chars().filter(|c| c == &'#').count()
                         == self.groups.iter().sum()
                     {
-                        // Hack 
+                        // Hack
                         if groups.len() == 1 {
                             updated_string = updated_string.replace('?', ".");
                             //println!("{}", updated_string);
