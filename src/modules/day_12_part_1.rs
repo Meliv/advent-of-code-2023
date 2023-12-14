@@ -1,33 +1,40 @@
 use std::{collections::HashSet, str::FromStr};
 
+use itertools::Itertools;
 use regex::Regex;
 
 const INPUT_FILE_PATH: &str = "src/inputs/day_12.txt";
 const GROUP_REGEX: &str = r"[?|#]*[^\.|\r|\n]";
 
 pub fn run() -> usize {
-    //let _ = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
-
-    let test_data: Vec<(String, Vec<usize>)> = vec![
-        //(String::from("???.###"), vec![1,1,3]), // Expect 1, Actual 1
-        //(String::from(".??..??...?##."), vec![1, 1, 3]), // Expect 4, Actual 4
-        //(String::from("?#?#?#?#?#?#?#?"), vec![1, 3, 1, 6]), // Expect 1, Actual 1
-        //(String::from("????.#...#..."), vec![4,1,1]), // Expect 1, Actual 1
-        (String::from("????.######..#####."), vec![1,6,5]), // Expect 4, Actual 2
-        (String::from("?###????????"), vec![3,2,1]), // Expect 10, Actual 11
-    ];
-
-    //?#?#?#?#?#?#?#?
-
-    //.#.###.#.######
 
     let mut result = 0;
+    let test_data: Vec<(String, Vec<usize>)> = get_input();
 
     for td in test_data {
         result += SpringField::new(td.0, td.1).get_permutations();
     }
-
     println!("Result {}", result);
+    result
+}
+
+fn get_input() -> Vec<(String, Vec<usize>)> {
+    let input = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
+
+    // Some proper 2am coding here
+
+    let mut result: Vec<(String, Vec<usize>)> = vec![];
+    for line in input.lines() {
+        let split: Vec<&str> = line.split_whitespace().collect();
+        let x: String = split.first().unwrap().to_string();
+
+        let y: Vec<usize> = split.get(1).unwrap()
+        .split(',')
+        .filter_map(|s| s.parse().ok()) // Parse each substring into usize
+        .collect();
+
+        result.push((x,y));
+    }
     result
 }
 
@@ -53,19 +60,31 @@ impl SpringField {
     }
 
     fn calculate_permutations(&mut self, input: String, mut start: usize, groups: Vec<usize>) {
-        
-        
         // Edge case city
-        if groups.is_empty(){
+        if groups.is_empty() {
+            if input.chars().filter(|c| c == &'#').count() == self.groups.iter().sum() {
+                let updated_string = input.replace('?', ".");
+                //println!("{}", updated_string);
+                self.permutations.insert(updated_string);
+            }
             return;
         }
-        
-        while start < input.len()
-        {
+
+        while start < input.len() {
             let mut updated_string_vec: Vec<char> = input.chars().collect();
-            
+
             if updated_string_vec[start] == '.' {
-                return;
+                let next_group: Option<(usize, char)> = find_next_group(updated_string_vec, start);
+
+                match next_group {
+                    Some(n) => {
+                        start = n.0;
+                        continue;
+                    }
+                    None => {
+                        return;
+                    }
+                }
             }
 
             // Find end of group (you already know start)
@@ -81,7 +100,8 @@ impl SpringField {
             let g = *groups.first().unwrap();
 
             // Do the insert
-            if (end - start + 1) >= g { // Has to be #1 because .###./.???. with 3 resolves to 2, not correct
+            if (end - start + 1) >= g {
+                // Has to be #1 because .###./.???. with 3 resolves to 2, not correct
 
                 updated_string_vec[start..start + g].fill('#');
 
@@ -92,16 +112,14 @@ impl SpringField {
                     }
                     updated_string_vec[start + g] = '.'; // Concern here
                 }
-            }
-            else {
-                return;
+            } else {
+                start += 1;
+                continue;
             }
 
             let mut updated_string: String = updated_string_vec.iter().collect();
 
-            let next = updated_string
-                .char_indices()
-                .find(|x| x.0 > start + g && (x.1 == '?' || x.1 == '#'));
+            let next: Option<(usize, char)> = find_next_group(updated_string_vec, start + g);
 
             match next {
                 Some(n) => {
@@ -111,33 +129,25 @@ impl SpringField {
                     if updated_string.chars().filter(|c| c == &'#').count()
                         == self.groups.iter().sum()
                     {
-                        updated_string = updated_string.replace('?', ".");
-                        println!("{}", updated_string);
-                        self.permutations.insert(updated_string);
+                        // Hack 
+                        if groups.len() == 1 {
+                            updated_string = updated_string.replace('?', ".");
+                            //println!("{}", updated_string);
+                            self.permutations.insert(updated_string);
+                        }
                     }
                 }
             }
             start += 1;
         }
-        /*
-
-        This whole code has gotten ridiculous
-
-        Here's all you need to do
-        Given input of //.??.??.### [1,1,3]
-        1. Find the first group of chars (.find(?/#) for the start, .find(.) for the end (end of line if not found))
-            1b. Insert into that group
-            1c. Insert a . after what you just inserted. If that char is a '#', then continue.
-            1d. Recursively call the method, passing in the next self.group and the next start (.find(?/#) from end of group you just placed into)
-
-        2. If the group of ?# chars is bigger than the group you're working with, find the next group
-        3. If you're ever about to overflow the string, continue. Maybe return. Probably return as incrementing
-           count is almost certainly not going to cause it all to fit this time
-
-
-         */
-
     }
+}
+
+fn find_next_group(chars: Vec<char>, start: usize) -> Option<(usize, char)> {
+    let string: String = chars.iter().collect();
+    string
+        .char_indices()
+        .find(|x| x.0 > start && (x.1 == '?' || x.1 == '#'))
 }
 
 #[cfg(test)]
@@ -146,6 +156,6 @@ mod tests {
 
     #[test]
     fn day12_part1_test() {
-        assert_eq!(run(), 0);
+        assert_eq!(run(), 6935);
     }
 }
