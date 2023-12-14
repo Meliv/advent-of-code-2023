@@ -56,5 +56,5 @@ use modules::day_13_part_1;
 use modules::day_13_part_2;
 
 fn main() {
-    day_13_part_2::run();
+    day_12_part_1::run();
 }

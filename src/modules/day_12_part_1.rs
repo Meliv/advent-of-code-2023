@@ -9,16 +9,20 @@ pub fn run() -> usize {
     //let _ = std::fs::read_to_string(INPUT_FILE_PATH).unwrap();
 
     let test_data: Vec<(String, Vec<usize>)> = vec![
-        //(String::from("???.###"), vec![1,1,3]), // Expect 1, Actual 0
+        //(String::from("???.###"), vec![1,1,3]), // Expect 1, Actual 1
         //(String::from(".??..??...?##."), vec![1,1,3]), // Expect 4, Actual 4
-        //(String::from("?#?#?#?#?#?#?#?"), vec![1,3,1,6]), // Expect 1, Actual 1
+        //(String::from("?#?#?#?#?#?#?#?"), vec![1, 3, 1, 6]), // Expect 1, Actual 1
         //(String::from("????.#...#..."), vec![4,1,1]), // Expect 1, Actual 1
-        //(String::from("????.######..#####."), vec![1,6,5]), // Expect 4, Actual 2
-        (String::from("?###????????"), vec![3,2,1]), // Expect 10, Actual 9
+        (String::from("????.######..#####."), vec![1,6,5]), // Expect 4, Actual 2
+        //(String::from("?###????????"), vec![3,2,1]), // Expect 10, Actual 11
     ];
 
+    //?#?#?#?#?#?#?#?
+
+    //.#.###.#.######
+
     let mut result = 0;
-    
+
     for td in test_data {
         result += SpringField::new(td.0, td.1).get_permutations();
     }
@@ -59,7 +63,7 @@ impl SpringField {
             let g_opt = groups.first();
             let g = match g_opt {
                 Some(g) => g,
-                None => return
+                None => return,
             };
 
             let mut updated_string_vec: Vec<char> = input.chars().collect();
@@ -74,21 +78,28 @@ impl SpringField {
                 .enumerate()
                 .find(|(i, x)| i > &start && x == &'.')
             {
-                Some(n) => n.0,
+                Some(n) => n.0 - 1,
                 None => input.len() - 1,
             };
 
             // Something here specifically about when strings end in . and when they don't
 
-            if start + g < input.len() && start + g <= end {
-                updated_string_vec[start..start + g].fill('#');
-            } else {
-                return;
-            }
+            // ??..... // start 0 end 2 group 2
+            // ##.....
+            // ??..... // start 1 end 2 group 2
 
-            // This is causing issues I think
-            if start + g < input.len() {
-                updated_string_vec[start + g] = '.';
+            //if start + g <= input.len() && end - start <= *g {
+            if end - start + 1 >= *g {
+                updated_string_vec[start..start + g].fill('#');
+
+                if start + g < input.len() {
+                    if updated_string_vec[start + g] == '#' {
+                        start += 1;
+                        continue;
+                    } else {
+                        updated_string_vec[start + g] = '.';
+                    }
+                }
             }
 
             let mut updated_string: String = updated_string_vec.iter().collect();
