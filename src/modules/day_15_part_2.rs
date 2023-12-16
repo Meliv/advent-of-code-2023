@@ -1,8 +1,4 @@
-use std::{
-    collections::{HashMap, VecDeque},
-    iter,
-    thread::current, array::IntoIter,
-};
+use std::collections::VecDeque;
 
 use itertools::Itertools;
 
@@ -21,16 +17,6 @@ pub fn run() -> usize {
     let result = map.get_result();
     
     println!("Result: {}", result);
-    result
-}
-
-fn calculate_string(input: &str) -> usize {
-    let mut result = 0;
-    for c in input.chars() {
-        result += c as usize;
-        result *= 17;
-        result %= 256;
-    }
     result
 }
 
@@ -67,16 +53,26 @@ impl Map {
         let split_values: Vec<&str> = value.split('=').collect();
         let label = *split_values.first().unwrap();
         let lens_value: usize = split_values.get(1).unwrap().parse().unwrap();
-        let box_index = calculate_string(label);
+        let box_index = self.calculate_hash(label);
 
         self.boxes.get_mut(box_index).unwrap().add_lens(label, lens_value);
     }
 
     fn remove_lens(&mut self, value: &str) {
         let label: &str = &value[0..value.len()-1];
-        let box_index = calculate_string(label);
+        let box_index = self.calculate_hash(label);
 
         self.boxes.get_mut(box_index).unwrap().remove_lens(label);
+    }
+
+    fn calculate_hash(&self, input: &str) -> usize {
+        let mut result = 0;
+        for c in input.chars() {
+            result += c as usize;
+            result *= 17;
+            result %= 256;
+        }
+        result
     }
 }
 
@@ -130,7 +126,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn day15_part1_test() {
-        assert_eq!(run(), 136);
+    fn day15_part2_test() {
+        assert_eq!(run(), 212449);
     }
 }
