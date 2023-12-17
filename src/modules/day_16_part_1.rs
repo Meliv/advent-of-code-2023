@@ -1,4 +1,5 @@
 use std::{
+    any,
     collections::{HashSet, VecDeque},
     io,
 };
@@ -12,12 +13,15 @@ pub fn run() -> usize {
 
     let map = Map::new(input);
 
+    let first_tile = map.get_tile(0,0).unwrap();
+
     let initial_beam = Beam {
-        current_tile_char: input.chars().next().unwrap(),
-        current_tile_index: 0,
-        direction: match input.chars().next().unwrap() {
+        x: first_tile.x,
+        y: first_tile.y,
+        direction: match first_tile.c {
             '.' => BeamDirection::East,
             '\\' => BeamDirection::South,
+            _ => panic!()
         },
     };
 
@@ -36,16 +40,16 @@ pub fn run() -> usize {
         let next_beams = map.get_next_beams(beam);
 
         if !next_beams.is_empty() {
-
             let b = next_beams.first().unwrap();
 
-            /*
-            let ec = EnergisedCell {
+            let inserted = energised_cells.insert(EnergisedCell {
+                x: b.x,
+                y: b.y,
+                entry_direction: b.direction,
+            });
+            if inserted {
+                beams.extend(next_beams);
             }
-            */
-
-            energised_cells.insert(next_beams.first().unwrap().current_tile_index);
-            beams.extend(bs);
         }
 
         beams.remove(0);
@@ -67,18 +71,18 @@ pub fn run() -> usize {
 
 #[derive(Copy, Clone)]
 struct Beam {
-    current_tile_char: char,
-    current_tile_index: isize,
+    x: usize,
+    y: usize,
     direction: BeamDirection,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 enum BeamDirection {
-    // 10 chars long in test input
-    North = -110,
-    South = 110,
-    East = 1,
-    West = -1,
+    North,
+    South,
+    East,
+    West,
+    Undefined,
 }
 
 struct Map {
@@ -127,105 +131,83 @@ impl Map {
     }
     */
 
-    fn get_tile(&self, x: usize, y: usize) -> Cell {
-        *self.cells.iter().find(|c| c.x == x && c.y == y).unwrap()
+    fn get_tile(&self, x: usize, y: usize) -> Option<&Cell> {
+        self.cells.iter().find(|c| c.x == x && c.y == y)
+    }
+
+    fn get_beam_next_tile(&self, beam: &Beam) -> Option<&Cell> {
+        match beam.direction {
+            BeamDirection::North => self.get_tile(beam.x, beam.y - 1),
+            BeamDirection::South => self.get_tile(beam.x, beam.y + 1),
+            BeamDirection::East => self.get_tile(beam.x + 1, beam.y),
+            BeamDirection::West => self.get_tile(beam.x - 1, beam.y),
+            _ => panic!(),
+        }
     }
 
     fn get_next_beams(&self, beam: &Beam) -> Vec<Beam> {
-        // Need to make sure the beam can't wrap to the previous line
-        let line_start: isize = (beam.current_tile_index / 110) * 110;
-        let line_end: isize = line_start + 109;
+        let next_tile = self.get_beam_next_tile(beam);
 
-        let current_tile_index: isize = beam.current_tile_index + beam.direction as isize;
-
-        if (beam.direction == BeamDirection::East || beam.direction == BeamDirection::West)
-            && (current_tile_index < line_start || current_tile_index > line_end)
-        {
-            return vec![];
+        if let Some(t) = next_tile {
+            match (t.c, beam.direction) {
+                ('|', BeamDirection::East | BeamDirection::West) => self.get_split_beams(t, beam),
+                ('-', BeamDirection::North | BeamDirection::South) => self.get_split_beams(t, beam),
+                _ => self.get_single_beam(t, beam),
+            };
         }
+        vec![]
+    }
 
-        match current_tile_index < 0 || current_tile_index >= self.tiles.len() as isize {
-            false => {
-                let current_tile_char =
-                    self.tiles.chars().nth(current_tile_index as usize).unwrap();
-                match (current_tile_char, beam.direction) {
-                    ('/', BeamDirection::East) => vec![Beam {
-                        current_tile_char,
-                        current_tile_index,
-                        direction: BeamDirection::North,
-                    }],
-                    ('/', BeamDirection::South) => vec![Beam {
-                        current_tile_char,
-                        current_tile_index,
-                        direction: BeamDirection::West,
-                    }],
-                    ('/', BeamDirection::West) => vec![Beam {
-                        current_tile_char,
-                        current_tile_index,
-                        direction: BeamDirection::South,
-                    }],
-                    ('/', BeamDirection::North) => vec![Beam {
-                        current_tile_char,
-                        current_tile_index,
-                        direction: BeamDirection::East,
-                    }],
+    fn get_single_beam(&self, next_tile: &Cell, beam: &Beam) -> Vec<Beam> {
+        let mut new_beam = Beam {
+            x: next_tile.x,
+            y: next_tile.y,
+            direction: BeamDirection::Undefined,
+        };
+        new_beam.direction = match (next_tile.c, beam.direction) {
+            ('\\', BeamDirection::North) => BeamDirection::West,
+            ('\\', BeamDirection::South) => BeamDirection::East,
+            ('\\', BeamDirection::East) => BeamDirection::South,
+            ('\\', BeamDirection::West) => BeamDirection::North,
 
-                    ('\\', BeamDirection::East) => vec![Beam {
-                        current_tile_char,
-                        current_tile_index,
-                        direction: BeamDirection::South,
-                    }],
-                    ('\\', BeamDirection::South) => vec![Beam {
-                        current_tile_char,
-                        current_tile_index,
-                        direction: BeamDirection::East,
-                    }],
-                    ('\\', BeamDirection::West) => vec![Beam {
-                        current_tile_char,
-                        current_tile_index,
-                        direction: BeamDirection::North,
-                    }],
-                    ('\\', BeamDirection::North) => vec![Beam {
-                        current_tile_char,
-                        current_tile_index,
-                        direction: BeamDirection::West,
-                    }],
+            ('/', BeamDirection::North) => BeamDirection::East,
+            ('/', BeamDirection::South) => BeamDirection::West,
+            ('/', BeamDirection::East) => BeamDirection::North,
+            ('/', BeamDirection::West) => BeamDirection::South,
 
-                    ('|', BeamDirection::West | BeamDirection::East) => vec![
-                        Beam {
-                            current_tile_char,
-                            current_tile_index,
-                            direction: BeamDirection::North,
-                        },
-                        Beam {
-                            current_tile_char,
-                            current_tile_index,
-                            direction: BeamDirection::South,
-                        },
-                    ],
+            _ => beam.direction,
+        };
 
-                    ('-', BeamDirection::North | BeamDirection::South) => vec![
-                        Beam {
-                            current_tile_char,
-                            current_tile_index,
-                            direction: BeamDirection::East,
-                        },
-                        Beam {
-                            current_tile_char,
-                            current_tile_index,
-                            direction: BeamDirection::West,
-                        },
-                    ],
+        vec![new_beam]
+    }
 
-                    _ => vec![Beam {
-                        current_tile_char,
-                        current_tile_index,
-                        direction: beam.direction,
-                    }],
-                    _ => panic!(),
-                }
-            }
-            true => vec![],
+    fn get_split_beams(&self, next_tile: &Cell, beam: &Beam) -> Vec<Beam> {
+        match (next_tile.c, beam.direction) {
+            ('|', BeamDirection::East | BeamDirection::West) => vec![
+                Beam {
+                    x: next_tile.x,
+                    y: next_tile.y,
+                    direction: BeamDirection::North,
+                },
+                Beam {
+                    x: next_tile.x,
+                    y: next_tile.y,
+                    direction: BeamDirection::South,
+                },
+            ],
+            ('-', BeamDirection::North | BeamDirection::South) => vec![
+                Beam {
+                    x: next_tile.x,
+                    y: next_tile.y,
+                    direction: BeamDirection::East,
+                },
+                Beam {
+                    x: next_tile.x,
+                    y: next_tile.y,
+                    direction: BeamDirection::West,
+                },
+            ],
+            _ => panic!(),
         }
     }
 }
