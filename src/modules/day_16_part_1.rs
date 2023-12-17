@@ -1,10 +1,4 @@
-use std::{
-    any,
-    collections::{HashSet, VecDeque},
-    io,
-};
-
-use itertools::Itertools;
+use std::collections::HashSet;
 
 const INPUT_FILE_PATH: &str = "src/inputs/day_16.txt";
 
@@ -54,9 +48,8 @@ pub fn run() -> usize {
 
         beams.remove(0);
     }
-    map.print(&energised_cells);
 
-    let result = energised_cells.len();
+    let result = map.get_result(&energised_cells);
 
     println!("Result: {}", result);
     result
@@ -117,7 +110,7 @@ impl Map {
                 println!();
             }
 
-            if let Some(x) = energised_cells.iter().find(|ec| ec.x == c.x && ec.y == c.y) {
+            if energised_cells.iter().any(|ec| ec.x == c.x && ec.y == c.y) {
                 print!("X")
             } else {
                 print!(".")
@@ -125,6 +118,17 @@ impl Map {
         }
 
         println!();
+    }
+
+    fn get_result(&self, energised_cells: &HashSet<EnergisedCell>) -> usize {
+        let mut result = 0;
+        for c in self.cells.iter() {
+            if energised_cells.iter().any(|ec| ec.x == c.x && ec.y == c.y) {
+                result += 1;
+            }
+        }
+
+        result
     }
 
     fn get_tile(&self, x: isize, y: isize) -> Option<&Cell> {
@@ -217,6 +221,6 @@ mod tests {
 
     #[test]
     fn day16_part1_test() {
-        assert_eq!(run(), 46);
+        assert_eq!(run(), 7496);
     }
 }
