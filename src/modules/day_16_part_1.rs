@@ -13,7 +13,7 @@ pub fn run() -> usize {
 
     let map = Map::new(input);
 
-    let first_tile = map.get_tile(0,0).unwrap();
+    let first_tile = map.get_tile(0, 0).unwrap();
 
     let initial_beam = Beam {
         x: first_tile.x,
@@ -21,7 +21,7 @@ pub fn run() -> usize {
         direction: match first_tile.c {
             '.' => BeamDirection::East,
             '\\' => BeamDirection::South,
-            _ => panic!()
+            _ => panic!(),
         },
     };
 
@@ -53,16 +53,9 @@ pub fn run() -> usize {
         }
 
         beams.remove(0);
-
-        
-        //let mut x = String::new();
-        //_ = io::stdin().read_line(&mut x);
-        if energised_cells.len() == 7496 {
-            break;
-        }
     }
     map.print(&energised_cells);
-    
+
     let result = energised_cells.len();
 
     println!("Result: {}", result);
@@ -106,7 +99,11 @@ impl Map {
         let mut cells: Vec<Cell> = vec![];
         for (i_y, line) in input.lines().enumerate() {
             for (i_x, c) in line.chars().enumerate() {
-                cells.push(Cell { x: i_x as isize, y: i_y as isize, c })
+                cells.push(Cell {
+                    x: i_x as isize,
+                    y: i_y as isize,
+                    c,
+                })
             }
         }
 
@@ -115,16 +112,16 @@ impl Map {
 
     fn print(&self, energised_cells: &HashSet<EnergisedCell>) {
         let line_length = 10;
-        for (i,c) in self.cells.iter().enumerate() {
-            
+        for (i, c) in self.cells.iter().enumerate() {
             if i != 0 && i % line_length == 0 {
                 println!();
-                print!("{}", c.c);
             }
-            else {
-                print!("{}", c.c);
+
+            if let Some(x) = energised_cells.iter().find(|ec| ec.x == c.x && ec.y == c.y) {
+                print!("X")
+            } else {
+                print!(".")
             }
-            
         }
 
         println!();
@@ -149,8 +146,12 @@ impl Map {
 
         if let Some(t) = next_tile {
             match (t.c, beam.direction) {
-                ('|', BeamDirection::East | BeamDirection::West) => return self.get_split_beams(t, beam),
-                ('-', BeamDirection::North | BeamDirection::South) => return self.get_split_beams(t, beam),
+                ('|', BeamDirection::East | BeamDirection::West) => {
+                    return self.get_split_beams(t, beam)
+                }
+                ('-', BeamDirection::North | BeamDirection::South) => {
+                    return self.get_split_beams(t, beam)
+                }
                 _ => return self.get_single_beam(t, beam),
             };
         }
