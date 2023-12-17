@@ -54,15 +54,15 @@ pub fn run() -> usize {
 
         beams.remove(0);
 
-        //map.print(&energised_cells);
-
+        
         //let mut x = String::new();
         //_ = io::stdin().read_line(&mut x);
         if energised_cells.len() == 7496 {
             break;
         }
     }
-
+    map.print(&energised_cells);
+    
     let result = energised_cells.len();
 
     println!("Result: {}", result);
@@ -113,23 +113,22 @@ impl Map {
         Map { cells }
     }
 
-    /*
-    fn print(&self, tiles: &HashSet<isize>) {
-        let mut x: Vec<char> = self.tiles.chars().collect();
-        for (i, c) in x.iter().enumerate() {
-            if i != 0 && i % 110 == 0 {
+    fn print(&self, energised_cells: &HashSet<EnergisedCell>) {
+        let line_length = 10;
+        for (i,c) in self.cells.iter().enumerate() {
+            
+            if i != 0 && i % line_length == 0 {
                 println!();
+                print!("{}", c.c);
             }
-            let ii = i as isize;
-            if tiles.contains(&ii) {
-                print!("X");
-            } else {
-                print!("{}", c);
+            else {
+                print!("{}", c.c);
             }
+            
         }
+
         println!();
     }
-    */
 
     fn get_tile(&self, x: isize, y: isize) -> Option<&Cell> {
         self.cells.iter().find(|c| c.x == x && c.y == y)
