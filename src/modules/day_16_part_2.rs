@@ -7,49 +7,70 @@ pub fn run() -> usize {
 
     let map = Map::new(input);
 
-    let first_tile = map.get_tile(0, 0).unwrap();
+    let mut result = 0;
 
-    let initial_beam = Beam {
-        x: first_tile.x,
-        y: first_tile.y,
-        direction: match first_tile.c {
-            '.' => BeamDirection::East,
-            '\\' => BeamDirection::South,
-            _ => panic!(),
-        },
-    };
+    let mut try_beams: Vec<Beam> = vec![];
 
-    let mut beams: Vec<Beam> = vec![initial_beam];
-
-    let mut energised_cells: HashSet<EnergisedCell> = HashSet::new();
-    energised_cells.insert(EnergisedCell {
-        x: 0,
+    let range: Vec<isize> = (0..10).collect();
+    try_beams.extend(range.iter().map(|i| Beam {
+        x: *i,
         y: 0,
-        entry_direction: initial_beam.direction,
-    });
+        direction: BeamDirection::South,
+    }));
+    try_beams.extend(range.iter().map(|i| Beam {
+        x: *i,
+        y: 9,
+        direction: BeamDirection::North,
+    }));
+    try_beams.extend(range.iter().map(|i| Beam {
+        x: 0,
+        y: *i,
+        direction: BeamDirection::East,
+    }));
+    try_beams.extend(range.iter().map(|i| Beam {
+        x: 9,
+        y: *i,
+        direction: BeamDirection::West,
+    }));
 
-    while !beams.is_empty() {
-        let beam = beams.first().unwrap();
+    for initial_beam in try_beams {
+        let mut beams: Vec<Beam> = vec![initial_beam];
 
-        let next_beams = map.get_next_beams(beam);
+        let mut energised_cells: HashSet<EnergisedCell> = HashSet::new();
+        energised_cells.insert(EnergisedCell {
+            x: initial_beam.x,
+            y: initial_beam.y,
+            entry_direction: initial_beam.direction,
+        });
 
-        if !next_beams.is_empty() {
-            let b = next_beams.first().unwrap();
+        while !beams.is_empty() {
+            let beam = beams.first().unwrap();
 
-            let inserted = energised_cells.insert(EnergisedCell {
-                x: b.x,
-                y: b.y,
-                entry_direction: b.direction,
-            });
-            if inserted {
-                beams.extend(next_beams);
+            let next_beams = map.get_next_beams(beam);
+
+            if !next_beams.is_empty() {
+                let b = next_beams.first().unwrap();
+
+                let inserted = energised_cells.insert(EnergisedCell {
+                    x: b.x,
+                    y: b.y,
+                    entry_direction: b.direction,
+                });
+                if inserted {
+                    beams.extend(next_beams);
+                }
             }
+
+            beams.remove(0);
         }
 
-        beams.remove(0);
-    }
+        let try_beam_result = map.get_result(&energised_cells);
 
-    let result = map.get_result(&energised_cells);
+        if try_beam_result > result {
+            result = try_beam_result;
+        }
+
+    }
 
     println!("Result: {}", result);
     result
@@ -221,7 +242,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn day16_part1_test() {
-        assert_eq!(run(), 7496);
+    fn day16_part2_test() {
+        assert_eq!(run(), 7932);
     }
 }
