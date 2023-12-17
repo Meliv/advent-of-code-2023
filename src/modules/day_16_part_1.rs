@@ -71,8 +71,8 @@ pub fn run() -> usize {
 
 #[derive(Copy, Clone)]
 struct Beam {
-    x: usize,
-    y: usize,
+    x: isize,
+    y: isize,
     direction: BeamDirection,
 }
 
@@ -89,15 +89,15 @@ struct Map {
     cells: Vec<Cell>,
 }
 struct Cell {
-    x: usize,
-    y: usize,
+    x: isize,
+    y: isize,
     c: char,
 }
 
 #[derive(Eq, PartialEq, Hash)]
 struct EnergisedCell {
-    x: usize,
-    y: usize,
+    x: isize,
+    y: isize,
     entry_direction: BeamDirection,
 }
 
@@ -106,7 +106,7 @@ impl Map {
         let mut cells: Vec<Cell> = vec![];
         for (i_y, line) in input.lines().enumerate() {
             for (i_x, c) in line.chars().enumerate() {
-                cells.push(Cell { x: i_x, y: i_y, c })
+                cells.push(Cell { x: i_x as isize, y: i_y as isize, c })
             }
         }
 
@@ -131,7 +131,7 @@ impl Map {
     }
     */
 
-    fn get_tile(&self, x: usize, y: usize) -> Option<&Cell> {
+    fn get_tile(&self, x: isize, y: isize) -> Option<&Cell> {
         self.cells.iter().find(|c| c.x == x && c.y == y)
     }
 
@@ -150,9 +150,9 @@ impl Map {
 
         if let Some(t) = next_tile {
             match (t.c, beam.direction) {
-                ('|', BeamDirection::East | BeamDirection::West) => self.get_split_beams(t, beam),
-                ('-', BeamDirection::North | BeamDirection::South) => self.get_split_beams(t, beam),
-                _ => self.get_single_beam(t, beam),
+                ('|', BeamDirection::East | BeamDirection::West) => return self.get_split_beams(t, beam),
+                ('-', BeamDirection::North | BeamDirection::South) => return self.get_split_beams(t, beam),
+                _ => return self.get_single_beam(t, beam),
             };
         }
         vec![]
