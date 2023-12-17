@@ -55,38 +55,6 @@ pub fn run() -> usize {
     result
 }
 
-#[derive(Copy, Clone)]
-struct Beam {
-    x: isize,
-    y: isize,
-    direction: BeamDirection,
-}
-
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
-enum BeamDirection {
-    North,
-    South,
-    East,
-    West,
-    Undefined,
-}
-
-struct Map {
-    cells: Vec<Cell>,
-}
-struct Cell {
-    x: isize,
-    y: isize,
-    c: char,
-}
-
-#[derive(Eq, PartialEq, Hash)]
-struct EnergisedCell {
-    x: isize,
-    y: isize,
-    entry_direction: BeamDirection,
-}
-
 impl Map {
     fn new(input: String) -> Map {
         let mut cells: Vec<Cell> = vec![];
@@ -215,6 +183,39 @@ impl Map {
         }
     }
 }
+
+#[derive(Copy, Clone)]
+struct Beam {
+    x: isize,
+    y: isize,
+    direction: BeamDirection,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Hash)]
+enum BeamDirection {
+    North,
+    South,
+    East,
+    West,
+    Undefined,
+}
+
+struct Map {
+    cells: Vec<Cell>,
+}
+struct Cell {
+    x: isize,
+    y: isize,
+    c: char,
+}
+
+#[derive(Eq, PartialEq, Hash)]
+struct EnergisedCell {
+    x: isize,
+    y: isize,
+    entry_direction: BeamDirection,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
